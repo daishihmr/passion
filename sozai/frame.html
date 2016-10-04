@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+
+<body>
+  <script src="../lib/phina.js"></script>
+  <script>
+  phina.globalize();
+
+  phina.namespace(function() {
+
+    phina.define("MainScene", {
+      superClass: "DisplayScene",
+
+      init: function() {
+        this.superInit();
+        this.fromJSON({
+          children: {
+            test1: {
+              className: "passion.Frame",
+              arguments: {
+                width: 200,
+                height: 200,
+              },
+              originX: 0,
+              originY: 0,
+              x: 10,
+              y: 10,
+              children: {
+                text: {
+                  className: "Label",
+                  arguments: "hello world. hello world.\nhello world. hello world.\n1234567890.",
+                  x: 30,
+                  y: 70,
+                  align: "left",
+                  baseline: "top",
+                  fill: "rgba(255, 255, 255, 0.8)",
+                  fontFamily: "main",
+                  fontSize: 15,
+                }
+              }
+            },
+            // test2: {
+            //   className: "passion.Frame",
+            //   arguments: {
+            //     width: 180,
+            //     height: 100,
+            //   },
+            //   originX: 0,
+            //   originY: 0,
+            //   x: 140,
+            //   y: 220,
+            // },
+            // test3: {
+            //   className: "passion.Frame",
+            //   arguments: {
+            //     width: 100,
+            //     height: 200,
+            //   },
+            //   originX: 0,
+            //   originY: 0,
+            //   x: 220,
+            //   y: 10,
+            // },
+            test4: {
+              className: "passion.Button",
+              arguments: {
+                text: "START",
+                width: 120,
+                height: 30,
+              },
+              x: 120,
+              y: 150,
+              onclicked: function() {
+                console.log("test4");
+              },
+            },
+            test5: {
+              className: "passion.Button",
+              arguments: {
+                text: "EXIT",
+                width: 120,
+                height: 30,
+              },
+              x: 120,
+              y: 190,
+              onclicked: function() {
+                console.log("test5");
+              },
+            },
+            test6: {
+              className: "passion.CircleButton",
+              arguments: {
+                text: "OK",
+                radius: 30,
+              },
+              x: 35,
+              y: 255,
+              onclicked: function() {
+                console.log("test6");
+              },
+            },
+            test7: {
+              className: "passion.Head2Label",
+              arguments: {
+                text: "phina.js",
+                width: 180,
+                height: 30,
+              },
+              x: 120,
+              y: 40,
+            },
+            test8: {
+              className: "passion.CircleButton",
+              arguments: {
+                text: "1",
+                radius: 30,
+              },
+              x: 105,
+              y: 255,
+              onclicked: function() {
+                console.log("test6");
+              },
+            },
+            test9: {
+              className: "passion.CircleButton",
+              arguments: {
+                text: "2",
+                radius: 30,
+              },
+              x: 35,
+              y: 320,
+              onclicked: function() {
+                console.log("test6");
+              },
+            },
+            test10: {
+              className: "passion.CircleButton",
+              arguments: {
+                text: "3",
+                radius: 30,
+              },
+              x: 105,
+              y: 320,
+              onclicked: function() {
+                console.log("test6");
+              },
+            },
+            test11: {
+              className: "passion.CircleGauge",
+              arguments: {
+                radius: 50,
+              },
+              x: 280,
+              y: 280,
+            },
+          },
+        });
+      },
+
+    });
+  });
+
+  phina.namespace(function() {
+
+    phina.define("passion.CircleGauge", {
+      superClass: "phina.display.Shape",
+
+      init: function(options) {
+        this.superInit(options);
+        this.superInit({}.$extend(options, {
+          width: options.radius * 2,
+          height: options.radius * 2,
+        }));
+
+        this.boundingType = "circle";
+        this.radius = options.radius;
+        this.backgroundColor = "transparent";
+      },
+
+      postrender: function(canvas) {
+        var c = canvas.context;
+      },
+
+    });
+  });
+
+  phina.namespace(function() {
+
+    phina.define("passion.CircleButton", {
+      superClass: "phina.display.Shape",
+
+      init: function(options) {
+        this.superInit({}.$extend(options, {
+          width: options.radius * 2,
+          height: options.radius * 2,
+        }));
+
+        this.interactive = true;
+        this.boundingType = "circle";
+        this.radius = options.radius;
+        this.backgroundColor = "transparent";
+        this.fill = "hsla(190, 100%, 60%, 0.4)";
+        this.stroke = "hsla(190, 100%, 60%, 0.9)";
+        this.strokeWidth = 2;
+        this.fromJSON({
+          children: {
+            text: {
+              className: "phina.display.Label",
+              arguments: {
+                text: options.text,
+                fontSize: 24,
+                // fontWeight: "bold",
+                fontFamily: "main",
+              },
+              fill: "hsla(190, 100%, 95%, 0.8)",
+              strokeWidth: 0,
+            },
+          },
+        });
+      },
+
+      postrender: function(canvas) {
+        var c = canvas.context;
+
+        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
+
+        c.beginPath();
+        c.arc(0, 0, this.radius * 0.65, 0, Math.PI * 2, false);
+        c.lineWidth = 1;
+        c.fill();
+        c.stroke();
+
+        c.beginPath();
+        c.arc(0, 0, this.radius * 0.75, 0, Math.PI * 2, false);
+        c.lineWidth = 3;
+        c.stroke();
+
+        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
+        for (var a = 0, b; a < Math.PI * 2;) {
+          b = Math.randfloat(1.0, 2.0);
+          c.beginPath();
+          c.arc(0, 0, this.radius * 0.90, a, a + b, false);
+          c.lineWidth = 1;
+          c.stroke();
+          a += b * 1.5;
+        }
+
+        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
+        for (var a = 0, b; a < Math.PI * 2;) {
+          b = Math.randfloat(1.0, 2.0);
+          c.beginPath();
+          c.arc(0, 0, this.radius * 1.00, a, a + b, false);
+          c.lineWidth = 1;
+          c.stroke();
+          a += b * 1.5;
+        }
+      },
+
+      onpointstart: function(e) {
+        this.scaleX = 1.2;
+        this.scaleY = 1.2;
+      },
+
+      onpointend: function(e) {
+        this.scaleX = 1.0;
+        this.scaleY = 1.0;
+        if (this.hitTest(e.pointer.x, e.pointer.y)) {
+          this.flare("clicked");
+        }
+      },
+
+    });
+  });
+
+  phina.namespace(function() {
+
+    phina.define("passion.Button", {
+      superClass: "phina.display.Shape",
+
+      init: function(options) {
+        this.superInit(options);
+        this.backgroundColor = "transparent";
+        this.interactive = true;
+        this.fromJSON({
+          children: {
+            text: {
+              className: "phina.display.Label",
+              arguments: {
+                text: options.text,
+                fontSize: 24,
+                // fontWeight: "bold",
+                fontFamily: "main",
+              },
+              fill: "hsla(190, 100%, 95%, 0.8)",
+              strokeWidth: 0,
+            },
+          },
+        });
+      },
+
+      prerender: function(canvas) {
+        var c = canvas.context;
+
+        c.beginPath();
+        c.moveTo(-this.width / 2 + 10, -this.height / 2);
+        c.lineTo(this.width / 2, -this.height / 2);
+        c.lineTo(this.width / 2, this.height / 2 - 10);
+        c.lineTo(this.width / 2 - 10, this.height / 2);
+        c.lineTo(-this.width / 2, this.height / 2);
+        c.lineTo(-this.width / 2, 10 - this.height / 2);
+        c.closePath();
+
+        var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+        sg.addColorStop(0.00, "hsla(190, 100%, 60%, 0.8)");
+        sg.addColorStop(0.38, "hsla(190, 100%, 60%, 0.8)");
+        sg.addColorStop(0.48, "hsla(190, 100%, 95%, 0.8)");
+        sg.addColorStop(0.52, "hsla(190, 100%, 95%, 0.8)");
+        sg.addColorStop(0.62, "hsla(190, 100%, 60%, 0.8)");
+        sg.addColorStop(1.00, "hsla(190, 100%, 60%, 0.8)");
+        this.stroke = sg;
+        this.strokeWidth = 2;
+
+        var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+        fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.5)");
+        fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.5)");
+        fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.5)");
+        fg.addColorStop(1.00, "hsla(190, 100%, 50%, 0.5)");
+        this.fill = fg;
+      },
+
+      postrender: function(canvas) {
+        var c = canvas.context;
+
+        c.moveTo(-this.width / 2 - 2, -this.height / 2 + 10 - 3);
+        c.lineTo(-this.width / 2 + 10 - 2, -this.height / 2 - 3);
+        c.lineTo(-this.width / 2 - 2 + 25, -this.height / 2 - 3);
+
+        c.moveTo(this.width / 2 + 2, this.height / 2 - 10 + 3);
+        c.lineTo(this.width / 2 - 10 + 2, this.height / 2 + 3);
+        c.lineTo(this.width / 2 + 2 - 25, this.height / 2 + 3);
+
+        this.renderStroke(canvas);
+      },
+
+      onpointstart: function(e) {
+        this.scaleX = 1.2;
+        this.scaleY = 1.2;
+      },
+
+      onpointend: function(e) {
+        this.scaleX = 1.0;
+        this.scaleY = 1.0;
+        if (this.hitTest(e.pointer.x, e.pointer.y)) {
+          this.flare("clicked");
+        }
+      },
+
+    });
+  });
+
+  phina.namespace(function() {
+
+    phina.define("passion.HeadLabel", {
+      superClass: "phina.display.Shape",
+
+      init: function(options) {
+        this.superInit(options);
+        this.backgroundColor = "transparent";
+        this.stroke = "hsla(190, 100%, 60%, 1.0)";
+        this.strokeWidth = 1;
+        this.fromJSON({
+          children: {
+            text: {
+              className: "phina.display.Label",
+              arguments: {
+                text: options.text,
+                fontSize: 24,
+                // fontWeight: "bold",
+                fontFamily: "main",
+              },
+              fill: "hsla(190, 100%, 95%, 0.8)",
+              strokeWidth: 0,
+            },
+          },
+        });
+      },
+
+      prerender: function(canvas) {
+        var c = canvas.context;
+        var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+        fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.2)");
+        fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.2)");
+        fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.2)");
+        fg.addColorStop(1.00, "hsla(190, 100%, 50%, 0.2)");
+        this.fill = fg;
+      },
+
+      postrender: function(canvas) {
+        var c = canvas.context;
+
+        c.beginPath();
+        c.moveTo(-this.width / 2, this.height / 2);
+        c.lineTo(-this.width / 2, -this.height / 2 + 10);
+        c.lineTo(-this.width / 2 + 10, -this.height / 2);
+        c.lineTo(this.width / 2, -this.height / 2);
+        c.lineTo(this.width / 2, this.height / 2 - 10);
+        c.lineTo(this.width / 2 - 10, this.height / 2);
+        c.closePath();
+        c.fill();
+
+        c.beginPath();
+        c.moveTo(-this.width / 2, this.height / 2);
+        c.lineTo(-this.width / 2, -this.height / 2 + 10);
+        c.lineTo(-this.width / 2 + 10, -this.height / 2);
+        c.stroke();
+
+        c.beginPath();
+        c.moveTo(this.width / 2, -this.height / 2);
+        c.lineTo(this.width / 2, this.height / 2 - 10);
+        c.lineTo(this.width / 2 - 10, this.height / 2);
+        c.stroke();
+      },
+
+    });
+  });
+
+  phina.namespace(function() {
+
+    phina.define("passion.Head2Label", {
+      superClass: "phina.display.Shape",
+
+      init: function(options) {
+        this.superInit(options);
+        this.backgroundColor = "transparent";
+        this.strokeWidth = 1;
+        this.fromJSON({
+          children: {
+            text: {
+              className: "phina.display.Label",
+              arguments: {
+                text: options.text,
+                fontSize: 24,
+                // fontWeight: "bold",
+                fontFamily: "main",
+              },
+              fill: "hsla(190, 100%, 95%, 0.8)",
+              strokeWidth: 0,
+            },
+          },
+        });
+      },
+
+      prerender: function(canvas) {
+        var c = canvas.context;
+
+        var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+        fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.2)");
+        fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.2)");
+        fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.2)");
+        fg.addColorStop(1.00, "hsla(190, 100%, 50%, 0.2)");
+        this.fill = fg;
+
+        var sg = c.createLinearGradient(-this.width / 2, 0, this.width / 2, 0);
+        sg.addColorStop(0.00, "hsla(190, 100%, 60%, 0.0)");
+        sg.addColorStop(0.30, "hsla(190, 100%, 60%, 1.0)");
+        sg.addColorStop(0.70, "hsla(190, 100%, 60%, 1.0)");
+        sg.addColorStop(1.00, "hsla(190, 100%, 60%, 0.0)");
+        this.stroke = sg;
+      },
+
+      postrender: function(canvas) {
+        var c = canvas.context;
+
+        c.beginPath();
+        c.moveTo(-this.width / 2, this.height / 2);
+        c.lineTo(-this.width / 2, -this.height / 2);
+        c.lineTo(this.width / 2, -this.height / 2);
+        c.lineTo(this.width / 2, this.height / 2);
+        c.closePath();
+        c.fill();
+
+        c.beginPath();
+        c.moveTo(-this.width / 2, this.height / 2);
+        c.lineTo(this.width / 2, this.height / 2);
+        c.stroke();
+
+        c.beginPath();
+        c.moveTo(-this.width / 2, -this.height / 2);
+        c.lineTo(this.width / 2, -this.height / 2);
+        c.stroke();
+      },
+
+    });
+  });
+
+  phina.namespace(function() {
+
+    phina.define("passion.Frame", {
+      superClass: "phina.display.Shape",
+
+      init: function(options) {
+        this.superInit(options);
+        this.backgroundColor = "transparent";
+        this.strokeWidth = 2;
+      },
+
+      prerender: function(canvas) {
+        var c = canvas.context;
+
+        c.beginPath();
+        c.moveTo(-this.width / 2 + 10, -this.height / 2);
+        c.lineTo(this.width / 2 - 5, -this.height / 2);
+        c.lineTo(this.width / 2, -this.height / 2 + 5);
+        c.lineTo(this.width / 2, this.height / 2 - 10);
+        c.lineTo(this.width / 2 - 10, this.height / 2);
+        c.lineTo(-this.width / 2 + 35, this.height / 2);
+        c.lineTo(-this.width / 2 + 30, this.height / 2 - 5);
+        c.lineTo(-this.width / 2, this.height / 2 - 5);
+        c.lineTo(-this.width / 2, 10 - this.height / 2);
+        c.closePath();
+
+        var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+        sg.addColorStop(0.00, "hsla(190, 100%, 30%, 0.8)");
+        sg.addColorStop(0.38, "hsla(190, 100%, 30%, 0.8)");
+        sg.addColorStop(0.48, "hsla(190, 100%, 80%, 0.8)");
+        sg.addColorStop(0.52, "hsla(190, 100%, 80%, 0.8)");
+        sg.addColorStop(0.62, "hsla(190, 100%, 30%, 0.8)");
+        sg.addColorStop(1.00, "hsla(190, 100%, 30%, 0.8)");
+        this.stroke = sg;
+
+        var fg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+        fg.addColorStop(0.00, "hsla(210, 100%, 30%, 0.2)");
+        fg.addColorStop(0.38, "hsla(210, 100%, 30%, 0.2)");
+        fg.addColorStop(0.48, "hsla(210, 100%, 80%, 0.2)");
+        fg.addColorStop(0.52, "hsla(210, 100%, 80%, 0.2)");
+        fg.addColorStop(0.62, "hsla(210, 100%, 30%, 0.2)");
+        fg.addColorStop(1.00, "hsla(210, 100%, 30%, 0.2)");
+        this.fill = fg;
+      },
+
+      postrender: function(canvas) {
+        var c = canvas.context;
+
+        c.beginPath();
+        c.moveTo(-this.width / 2 + 10 - 3, -this.height / 2 - 3);
+        c.lineTo(this.width / 2 - 5 + 3, -this.height / 2 - 3);
+        c.lineTo(this.width / 2 + 3, -this.height / 2 + 5 - 3);
+        c.lineTo(this.width / 2 + 3, this.height / 2 - 10 + 3);
+        c.lineTo(this.width / 2 - 10 + 3, this.height / 2 + 3);
+        c.lineTo(-this.width / 2 + 35 - 3, this.height / 2 + 3);
+        c.lineTo(-this.width / 2 + 30 - 3, this.height / 2 - 5 + 3);
+        c.lineTo(-this.width / 2 - 3, this.height / 2 - 5 + 3);
+        c.lineTo(-this.width / 2 - 3, -this.height / 2 + 10 - 3);
+        c.closePath();
+
+        c.lineWidth = 1;
+        c.stroke();
+      },
+
+    });
+  });
+
+  phina.game.GameApp({
+    width: 360,
+    height: 360,
+    startLabel: "main",
+    backgroundColor: "black",
+    assets: {
+      font: {
+        main: "../asset/font/Baumans/Baumans-Regular.ttf",
+      },
+    },
+  }).run();
+  </script>
+</body>
+
+</html>
