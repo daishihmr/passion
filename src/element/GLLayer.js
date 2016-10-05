@@ -16,6 +16,7 @@ phina.namespace(function() {
 
     camera: null,
 
+    bgDrawer: null,
     enemyDrawer: null,
     effectDrawer: null,
     bulletDrawer: null,
@@ -59,6 +60,7 @@ phina.namespace(function() {
         .ortho(-w * 0.5, w * 0.5, h * 0.5, -h * 0.5, 0.1, 3000)
         .calcVpMatrix();
 
+      this.bgDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.enemyDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.effectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
@@ -70,6 +72,7 @@ phina.namespace(function() {
     update: function(app) {
       if (!this.ready) return;
 
+      this.bgDrawer.update(app);
       this.enemyDrawer.update(app);
       this.effectDrawer.update(app);
       this.bulletDrawer.update(app);
@@ -88,6 +91,7 @@ phina.namespace(function() {
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+      this.bgDrawer.render(ou);
       this.enemyDrawer.render(ou);
       this.effectDrawer.render(ou);
       this.bulletDrawer.render(ou);

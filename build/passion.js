@@ -2,7 +2,7 @@ var SCREEN_WIDTH = 360;
 var SCREEN_HEIGHT = 640;
 var GAME_AREA_WIDTH = SCREEN_WIDTH;
 var GAME_AREA_HEIGHT = SCREEN_HEIGHT * 0.85;
-var FPS = 30;
+var FPS = 60;
 
 phina.main(function() {
 
@@ -62,8 +62,9 @@ phina.namespace(function() {
           case "common":
             return {
               image: {
-                "bullets.png": "./asset/image/bullets.png",
                 "test.png": "./asset/image/test.png",
+                "bullets.png": "./asset/image/bullets.png",
+                "texture0.png": "./asset/image/texture0.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",
@@ -134,6 +135,38 @@ phina.namespace(function() {
   });
 });
 
+phina.namespace(function() {
+  
+  phina.define("passion.Background", {
+    superClass: "passion.Sprite",
+    
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.on("enterframe", function() {
+        this.y += 3;
+        if (this.y > GAME_AREA_HEIGHT / 2 + 640) {
+          this.y -= 640 * 2;
+        }
+      });
+    },
+
+    spawn: function() {
+      passion.Sprite.prototype.spawn.call(this, {
+        scaleX: 360,
+        scaleY: 640,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1,
+        frameH: 1,
+        red: 0.5,
+        green: 0.5,
+        blue: 0.5,
+      });
+      return this;
+    },
+
+  });
+});
 phina.namespace(function() {
 
   phina.define("passion.Bullet", {
@@ -260,13 +293,13 @@ phina.namespace(function() {
           unitSize: 2,
           data: [
             //
-            -16, +16,
+            -0.5, +0.5,
             //
-            +16, +16,
+            +0.5, +0.5,
             //
-            -16, -16,
+            -0.5, -0.5,
             //
-            +16, -16,
+            +0.5, -0.5,
           ]
         }, {
           unitSize: 2,
@@ -382,6 +415,7 @@ phina.namespace(function() {
 
     camera: null,
 
+    bgDrawer: null,
     enemyDrawer: null,
     effectDrawer: null,
     bulletDrawer: null,
@@ -425,6 +459,7 @@ phina.namespace(function() {
         .ortho(-w * 0.5, w * 0.5, h * 0.5, -h * 0.5, 0.1, 3000)
         .calcVpMatrix();
 
+      this.bgDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.enemyDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.effectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
@@ -436,6 +471,7 @@ phina.namespace(function() {
     update: function(app) {
       if (!this.ready) return;
 
+      this.bgDrawer.update(app);
       this.enemyDrawer.update(app);
       this.effectDrawer.update(app);
       this.bulletDrawer.update(app);
@@ -454,6 +490,7 @@ phina.namespace(function() {
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+      this.bgDrawer.render(ou);
       this.enemyDrawer.render(ou);
       this.effectDrawer.render(ou);
       this.bulletDrawer.render(ou);
@@ -473,44 +510,61 @@ phina.namespace(function() {
 });
 
 phina.namespace(function() {
-  
+
   phina.define("passion.Player", {
     superClass: "passion.Sprite",
     
+    _roll: 0,
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("enterframe", function(e) {
         this.controll(e.app);
       });
     },
-    
+
     spawn: function() {
       passion.Sprite.prototype.spawn.call(this, {
-        scaleX: 5,
-        scaleY: 5,
-        frameX: 0,
-        frameY: 0,
-        frameW: 1,
-        frameH: 1,
+        scaleX: 60,
+        scaleY: 60,
+        frameX: 3 / 8,
+        frameY: 0 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
       });
       return this;
     },
-    
+
     controll: function(app) {
       var p = app.pointer;
       var dp = p.deltaPosition;
-      
+
       if (p.getPointing()) {
         this.x += dp.x * 2;
         this.y += dp.y * 2;
-        
+
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
         this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
       }
     },
+    
+    acceccor: {
+      roll: {
+        get: function() {
+          return this._roll;
+        },
+        set: function(v) {
+          this._roll = Math.clamp(v, -3, 3);
+          var r = ~~this._roll;
+          if (-3 < r && r < 0) r += 1;
+          this.frameX = (r + 3) / 8;
+        },
+      },
+    },
 
   });
 });
+
 phina.namespace(function() {
 
   phina.define("passion.SpritDrawer", {
@@ -539,13 +593,13 @@ phina.namespace(function() {
           unitSize: 2,
           data: [
             //
-            -5, +5,
+            -0.5, +0.5,
             //
-            +5, +5,
+            +0.5, +0.5,
             //
-            -5, -5,
+            -0.5, -0.5,
             //
-            +5, -5,
+            +0.5, -0.5,
           ]
         }, {
           unitSize: 2,
@@ -827,22 +881,11 @@ phina.namespace(function() {
     init: function() {
       this.superInit();
 
-      var bgTexture = phina.graphics.Canvas();
-      bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-      bgTexture.clearColor("hsl(220, 70%, 20%)");
-      bgTexture.strokeStyle = "hsl(220, 70%, 60%)";
-      (90).times(function(i, j) {
-        bgTexture.drawLine(0, SCREEN_HEIGHT / j * i, SCREEN_WIDTH, SCREEN_HEIGHT / j * i);
-      });
-      (60).times(function(i, j) {
-        bgTexture.drawLine(SCREEN_WIDTH / j * i, 0, SCREEN_WIDTH / j * i, SCREEN_HEIGHT);
-      });
-
       this.fromJSON({
         children: {
           bg: {
             className: "phina.display.Sprite",
-            arguments: bgTexture,
+            arguments: this.drawBgTexture(),
             originX: 0,
             originY: 0,
           },
@@ -856,17 +899,54 @@ phina.namespace(function() {
           },
         },
       });
-      
-      this.glLayer.playerDrawer.addObjType("test", {
-        className: "passion.Player",
+
+      this.glLayer.bgDrawer.addObjType("bg", {
+        className: "passion.Background",
         texture: "test.png",
+        count: 2,
       });
-      
-      var player = this.glLayer.playerDrawer.get("test");
+      var bg = this.glLayer.bgDrawer.get("bg");
+      bg.spawn();
+      bg.x = GAME_AREA_WIDTH / 2;
+      bg.y = GAME_AREA_HEIGHT / 2;
+      bg.addChildTo(this.glLayer);
+      var bg2 = this.glLayer.bgDrawer.get("bg");
+      bg2.spawn();
+      bg2.x = GAME_AREA_WIDTH / 2;
+      bg2.y = GAME_AREA_HEIGHT / 2 - 640;
+      bg2.addChildTo(this.glLayer);
+
+      this.glLayer.playerDrawer.addObjType("player", {
+        className: "passion.Player",
+        texture: "texture0.png",
+      });
+
+      var player = this.glLayer.playerDrawer.get("player");
       player.spawn();
       player.addChildTo(this.glLayer);
       player.x = 100;
       player.y = 100;
+    },
+
+    drawBgTexture: function() {
+      var bgTexture = phina.graphics.Canvas();
+      bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+      bgTexture.clearColor("hsla(190, 100%, 95%, 0.1)");
+      bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.2)";
+      (100).times(function(i, j) {
+        var y = (SCREEN_HEIGHT * 1.5) / j * i;
+        bgTexture.strokeLines(
+          SCREEN_WIDTH * 0.0, y - 10,
+          SCREEN_WIDTH * 0.1, y - 10,
+          SCREEN_WIDTH * 0.2, y + 20,
+          SCREEN_WIDTH * 0.5, y + 20,
+          SCREEN_WIDTH * 0.6, y - 30,
+          SCREEN_WIDTH * 0.7, y - 30,
+          SCREEN_WIDTH * 0.8, y - 50,
+          SCREEN_WIDTH * 1.0, y - 50
+        );
+      });
+      return bgTexture;
     },
 
   });

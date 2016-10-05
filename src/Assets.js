@@ -7,8 +7,9 @@ phina.namespace(function() {
           case "common":
             return {
               image: {
-                "bullets.png": "./asset/image/bullets.png",
                 "test.png": "./asset/image/test.png",
+                "bullets.png": "./asset/image/bullets.png",
+                "texture0.png": "./asset/image/texture0.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",

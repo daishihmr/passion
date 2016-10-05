@@ -2,7 +2,7 @@ var SCREEN_WIDTH = 360;
 var SCREEN_HEIGHT = 640;
 var GAME_AREA_WIDTH = SCREEN_WIDTH;
 var GAME_AREA_HEIGHT = SCREEN_HEIGHT * 0.85;
-var FPS = 30;
+var FPS = 60;
 
 phina.main(function() {
 
