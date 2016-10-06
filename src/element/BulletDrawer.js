@@ -5,7 +5,7 @@ phina.namespace(function() {
     instanceData: null,
 
     pool: null,
-    _count: 2000,
+    _count: 500,
 
     init: function(gl, ext, w, h) {
       this.superInit(gl, ext);
@@ -111,9 +111,9 @@ phina.namespace(function() {
 
     render: function(uniforms) {
       var gl = this.gl;
-      gl.enable(gl.BLEND);
+      // gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.disable(gl.DEPTH_TEST);
+      // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
       if (uniforms) {

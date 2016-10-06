@@ -89,14 +89,16 @@ phina.namespace(function() {
             return [
               // visible
               0,
-              // m0
-              1, 0, 0,
-              // m1
-              0, 1, 0,
-              // m2
-              0, 0, 1,
-              // m3
-              0, 0, 0,
+              // position
+              0, 0,
+              // rotation
+              0,
+              // scale
+              0, 0,
+              // frame
+              0, 0, 0, 0,
+              // rgba
+              0, 0, 0, 0,
             ];
           }).flatten(),
         };
@@ -118,9 +120,11 @@ phina.namespace(function() {
     update: function() {},
 
     render: function(uniforms) {
+      if (this.objTypes.length === 0) return;
+
       var gl = this.gl;
-      gl.enable(gl.BLEND);
-      gl.disable(gl.DEPTH_TEST);
+      // gl.enable(gl.BLEND);
+      // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
 

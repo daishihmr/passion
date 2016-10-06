@@ -36,7 +36,7 @@ phina.namespace(function() {
       instanceData[index + 0] = this.x;
       instanceData[index + 1] = this.y;
       instanceData[index + 2] = runner.direction; // rotation
-      instanceData[index + 3] = 2.8; // scale
+      instanceData[index + 3] = option.scale; // scale
       instanceData[index + 4] = option.type % 8; // frame.x
       instanceData[index + 5] = ~~(option.type / 8); // frame.y
       instanceData[index + 6] = 1; // visible
@@ -78,7 +78,7 @@ phina.namespace(function() {
       this.x = runner.x;
       this.y = runner.y;
 
-      if (this.x < -100 || SCREEN_WIDTH + 100 < this.x || this.y < -100 || SCREEN_HEIGHT + 100 < this.y) {
+      if (this.x < -50 || GAME_AREA_WIDTH + 50 < this.x || this.y < -50 || GAME_AREA_HEIGHT + 50 < this.y) {
         this.remove();
         return;
       }

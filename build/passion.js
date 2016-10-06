@@ -11,6 +11,9 @@ phina.main(function() {
     height: SCREEN_HEIGHT,
     backgroundColor: "transparent",
   });
+  
+  phina.display.Label.defaults.fontFamily = "main";
+  phina.display.Label.defaults.fill = "white";
 
   var app = passion.Application();
   app.enableStats();
@@ -61,6 +64,9 @@ phina.namespace(function() {
         switch (options.assetType) {
           case "common":
             return {
+              font: {
+                main: "./asset/font/Baumans/Baumans-Regular.ttf",
+              },
               image: {
                 "test.png": "./asset/image/test.png",
                 "bullets.png": "./asset/image/bullets.png",
@@ -205,7 +211,7 @@ phina.namespace(function() {
       instanceData[index + 0] = this.x;
       instanceData[index + 1] = this.y;
       instanceData[index + 2] = runner.direction; // rotation
-      instanceData[index + 3] = 2.8; // scale
+      instanceData[index + 3] = option.scale; // scale
       instanceData[index + 4] = option.type % 8; // frame.x
       instanceData[index + 5] = ~~(option.type / 8); // frame.y
       instanceData[index + 6] = 1; // visible
@@ -247,7 +253,7 @@ phina.namespace(function() {
       this.x = runner.x;
       this.y = runner.y;
 
-      if (this.x < -100 || SCREEN_WIDTH + 100 < this.x || this.y < -100 || SCREEN_HEIGHT + 100 < this.y) {
+      if (this.x < -50 || GAME_AREA_WIDTH + 50 < this.x || this.y < -50 || GAME_AREA_HEIGHT + 50 < this.y) {
         this.remove();
         return;
       }
@@ -274,7 +280,7 @@ phina.namespace(function() {
     instanceData: null,
 
     pool: null,
-    _count: 2000,
+    _count: 500,
 
     init: function(gl, ext, w, h) {
       this.superInit(gl, ext);
@@ -380,9 +386,9 @@ phina.namespace(function() {
 
     render: function(uniforms) {
       var gl = this.gl;
-      gl.enable(gl.BLEND);
+      // gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.disable(gl.DEPTH_TEST);
+      // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
       if (uniforms) {
@@ -396,6 +402,94 @@ phina.namespace(function() {
   });
 
 });
+
+ phina.namespace(function() {
+
+   phina.define("passion.CircleButton", {
+     superClass: "phina.display.Shape",
+
+     init: function(options) {
+       this.superInit({}.$extend(options, {
+         width: options.radius * 2,
+         height: options.radius * 2,
+       }));
+
+       this.interactive = true;
+       this.boundingType = "circle";
+       this.radius = options.radius;
+       this.backgroundColor = "transparent";
+       this.fill = "hsla(190, 100%, 60%, 0.4)";
+       this.stroke = "hsla(190, 100%, 60%, 0.9)";
+       this.strokeWidth = 2;
+       this.fromJSON({
+         children: {
+           text: {
+             className: "phina.display.Label",
+             arguments: {
+               text: options.text,
+               fontSize: 24,
+               // fontWeight: "bold",
+               fontFamily: "main",
+             },
+             fill: "hsla(190, 100%, 95%, 0.8)",
+             strokeWidth: 0,
+           },
+         },
+       });
+     },
+
+     postrender: function(canvas) {
+       var c = canvas.context;
+
+       c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
+
+       c.beginPath();
+       c.arc(0, 0, this.radius * 0.65, 0, Math.PI * 2, false);
+       c.lineWidth = 1;
+       c.fill();
+       c.stroke();
+
+       c.beginPath();
+       c.arc(0, 0, this.radius * 0.75, 0, Math.PI * 2, false);
+       c.lineWidth = 3;
+       c.stroke();
+
+       c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
+       for (var a = 0, b; a < Math.PI * 2;) {
+         b = Math.randfloat(1.0, 2.0);
+         c.beginPath();
+         c.arc(0, 0, this.radius * 0.90, a, a + b, false);
+         c.lineWidth = 1;
+         c.stroke();
+         a += b * 1.5;
+       }
+
+       c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
+       for (var a = 0, b; a < Math.PI * 2;) {
+         b = Math.randfloat(1.0, 2.0);
+         c.beginPath();
+         c.arc(0, 0, this.radius * 1.00, a, a + b, false);
+         c.lineWidth = 1;
+         c.stroke();
+         a += b * 1.5;
+       }
+     },
+
+     onpointstart: function(e) {
+       this.scaleX = 1.2;
+       this.scaleY = 1.2;
+     },
+
+     onpointend: function(e) {
+       this.scaleX = 1.0;
+       this.scaleY = 1.0;
+       if (this.hitTest(e.pointer.x, e.pointer.y)) {
+         this.flare("clicked");
+       }
+     },
+
+   });
+ });
 
 phina.namespace(function() {
   
@@ -418,8 +512,9 @@ phina.namespace(function() {
     bgDrawer: null,
     enemyDrawer: null,
     effectDrawer: null,
-    bulletDrawer: null,
     playerDrawer: null,
+    bulletDrawer: null,
+    topEffectDrawer: null,
 
     init: function() {
       this.superInit({
@@ -445,6 +540,8 @@ phina.namespace(function() {
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.clearDepth(1.0);
       gl.disable(gl.CULL_FACE);
+      gl.enable(gl.BLEND);
+      gl.disable(gl.DEPTH_TEST);
 
       var cw = this.domElement.width;
       var ch = this.domElement.height;
@@ -462,8 +559,9 @@ phina.namespace(function() {
       this.bgDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.enemyDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.effectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
-      this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
       this.playerDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
+      this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
+      this.topEffectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
 
       this.ready = true;
     },
@@ -474,8 +572,9 @@ phina.namespace(function() {
       this.bgDrawer.update(app);
       this.enemyDrawer.update(app);
       this.effectDrawer.update(app);
-      this.bulletDrawer.update(app);
       this.playerDrawer.update(app);
+      this.bulletDrawer.update(app);
+      this.topEffectDrawer.update(app);
     },
 
     draw: function(canvas) {
@@ -493,8 +592,9 @@ phina.namespace(function() {
       this.bgDrawer.render(ou);
       this.enemyDrawer.render(ou);
       this.effectDrawer.render(ou);
-      this.bulletDrawer.render(ou);
       this.playerDrawer.render(ou);
+      this.bulletDrawer.render(ou);
+      this.topEffectDrawer.render(ou);
 
       gl.flush();
 
@@ -502,7 +602,7 @@ phina.namespace(function() {
     },
 
     _static: {
-      // quality: 0.5,
+      // quality: 0.75,
       quality: 1.0,
     },
   });
@@ -656,14 +756,16 @@ phina.namespace(function() {
             return [
               // visible
               0,
-              // m0
-              1, 0, 0,
-              // m1
-              0, 1, 0,
-              // m2
-              0, 0, 1,
-              // m3
-              0, 0, 0,
+              // position
+              0, 0,
+              // rotation
+              0,
+              // scale
+              0, 0,
+              // frame
+              0, 0, 0, 0,
+              // rgba
+              0, 0, 0, 0,
             ];
           }).flatten(),
         };
@@ -685,9 +787,11 @@ phina.namespace(function() {
     update: function() {},
 
     render: function(uniforms) {
+      if (this.objTypes.length === 0) return;
+
       var gl = this.gl;
-      gl.enable(gl.BLEND);
-      gl.disable(gl.DEPTH_TEST);
+      // gl.enable(gl.BLEND);
+      // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
 
@@ -839,6 +943,143 @@ phina.namespace(function() {
 
 phina.namespace(function() {
 
+  phina.define("passion.UIFrame", {
+    superClass: "phina.display.Shape",
+
+    init: function(options) {
+      this.superInit(options);
+      this.backgroundColor = "transparent";
+      this.strokeWidth = 2;
+    },
+
+    prerender: function(canvas) {
+      var c = canvas.context;
+
+      c.beginPath();
+      c.moveTo(-this.width / 2 + 10, -this.height / 2);
+      c.lineTo(this.width / 2 - 5, -this.height / 2);
+      c.lineTo(this.width / 2, -this.height / 2 + 5);
+      c.lineTo(this.width / 2, this.height / 2 - 10);
+      c.lineTo(this.width / 2 - 10, this.height / 2);
+      c.lineTo(-this.width / 2 + 35, this.height / 2);
+      c.lineTo(-this.width / 2 + 30, this.height / 2 - 5);
+      c.lineTo(-this.width / 2, this.height / 2 - 5);
+      c.lineTo(-this.width / 2, 10 - this.height / 2);
+      c.closePath();
+
+      var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      sg.addColorStop(0.00, "hsla(190, 100%, 30%, 0.8)");
+      sg.addColorStop(0.38, "hsla(190, 100%, 30%, 0.8)");
+      sg.addColorStop(0.48, "hsla(190, 100%, 80%, 0.8)");
+      sg.addColorStop(0.52, "hsla(190, 100%, 80%, 0.8)");
+      sg.addColorStop(0.62, "hsla(190, 100%, 30%, 0.8)");
+      sg.addColorStop(1.00, "hsla(190, 100%, 30%, 0.8)");
+      this.stroke = sg;
+
+      var fg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      fg.addColorStop(0.00, "hsla(210, 100%, 30%, 0.2)");
+      fg.addColorStop(0.38, "hsla(210, 100%, 30%, 0.2)");
+      fg.addColorStop(0.48, "hsla(210, 100%, 80%, 0.2)");
+      fg.addColorStop(0.52, "hsla(210, 100%, 80%, 0.2)");
+      fg.addColorStop(0.62, "hsla(210, 100%, 30%, 0.2)");
+      fg.addColorStop(1.00, "hsla(210, 100%, 30%, 0.2)");
+      this.fill = fg;
+    },
+
+    postrender: function(canvas) {
+      var c = canvas.context;
+
+      c.beginPath();
+      c.moveTo(-this.width / 2 + 10 - 3, -this.height / 2 - 3);
+      c.lineTo(this.width / 2 - 5 + 3, -this.height / 2 - 3);
+      c.lineTo(this.width / 2 + 3, -this.height / 2 + 5 - 3);
+      c.lineTo(this.width / 2 + 3, this.height / 2 - 10 + 3);
+      c.lineTo(this.width / 2 - 10 + 3, this.height / 2 + 3);
+      c.lineTo(-this.width / 2 + 35 - 3, this.height / 2 + 3);
+      c.lineTo(-this.width / 2 + 30 - 3, this.height / 2 - 5 + 3);
+      c.lineTo(-this.width / 2 - 3, this.height / 2 - 5 + 3);
+      c.lineTo(-this.width / 2 - 3, -this.height / 2 + 10 - 3);
+      c.closePath();
+
+      c.lineWidth = 1;
+      c.stroke();
+    },
+
+  });
+});
+
+phina.namespace(function() {
+
+  phina.define("passion.UILayer", {
+    superClass: "phina.display.DisplayElement",
+
+    init: function() {
+      this.superInit();
+      this.fromJSON({
+        originX: 0,
+        originY: 0,
+        children: {
+          scoreBg: {
+            className: "passion.UIFrame",
+            arguments: {
+              width: GAME_AREA_WIDTH * 0.96,
+              height: GAME_AREA_HEIGHT * 0.05,
+            },
+            x: GAME_AREA_WIDTH * 0.01,
+            y: GAME_AREA_HEIGHT * 0.00,
+            originX: 0,
+            originY: 0,
+            children: {
+              scoreLabel: {
+                className: "phina.display.Label",
+                arguments: {
+                  text: "1,234,567,890",
+                  align: "right",
+                  baseline: "middle",
+                  fontSize: GAME_AREA_HEIGHT * 0.04,
+                },
+                x: GAME_AREA_WIDTH * 0.96,
+                y: GAME_AREA_HEIGHT * 0.04,
+              },
+            },
+          },
+          button: {
+            className: "passion.CircleButton",
+            arguments: {
+              text: "B",
+              radius: GAME_AREA_WIDTH * 0.08,
+            },
+            x: GAME_AREA_WIDTH * 0.10,
+            y: GAME_AREA_HEIGHT * 0.94,
+          },
+          damage: {
+            className: "phina.display.Sprite",
+            arguments: this.damageTexture(),
+            originX: 0,
+            originY: 0,
+            alpha: 0.0,
+          },
+        },
+      });
+    },
+
+    damageTexture: function() {
+      var c = phina.graphics.Canvas();
+      c.setSize(GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+      c.clearColor("transparent");
+      var g = c.context.createRadialGradient(GAME_AREA_WIDTH / 2, GAME_AREA_HEIGHT / 2, 0, GAME_AREA_WIDTH / 2, GAME_AREA_HEIGHT / 2, GAME_AREA_HEIGHT / 2)
+      g.addColorStop(0, "rgba(255, 0, 0, 0.0)");
+      g.addColorStop(1, "rgba(255, 0, 0, 1.0)");
+      c.fillStyle = g;
+      c.fillRect(0, 0, GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+      return c;
+    },
+
+  });
+});
+
+phina.namespace(function() {
+
   phina.define("passion.Pool", {
 
     array: null,
@@ -893,9 +1134,7 @@ phina.namespace(function() {
             className: "passion.GLLayer",
           },
           uiLayer: {
-            className: "phina.display.DisplayElement",
-            originX: 0,
-            originY: 0,
+            className: "passion.UILayer",
           },
         },
       });
@@ -916,6 +1155,43 @@ phina.namespace(function() {
       bg2.y = GAME_AREA_HEIGHT / 2 - 640;
       bg2.addChildTo(this.glLayer);
 
+      this.glLayer.effectDrawer.addObjType("effect", {
+        texture: "texture0.png",
+        additiveBlending: true,
+        count: 500,
+      });
+      this.on("enterframe", function(e) {
+        if (e.app.ticker.frame % 2 !== 0) return;
+        var hex = this.glLayer.effectDrawer.get("effect");
+        if (hex) {
+          var dx = Math.randfloat(-1, 1);
+          hex.onenterframe = function() {
+            this.x += dx;
+            this.y += 2;
+            this.alpha *= 0.9;
+            if (this.alpha < 0.01) {
+              this.remove();
+            }
+          };
+          var s = Math.randfloat(22, 32);
+          hex.spawn({
+            scaleX: s,
+            scaleY: s,
+            frameX: 7 / 8,
+            frameY: 0 / 8,
+            frameW: 1 / 8,
+            frameH: 1 / 8,
+            red: 0.2,
+            green: 1.0,
+            blue: 0.8,
+            alpha: 1.0,
+          });
+          hex.addChildTo(this.glLayer);
+          hex.x = player.x;
+          hex.y = player.y + 15;
+        }
+      });
+
       this.glLayer.playerDrawer.addObjType("player", {
         className: "passion.Player",
         texture: "texture0.png",
@@ -926,15 +1202,141 @@ phina.namespace(function() {
       player.addChildTo(this.glLayer);
       player.x = 100;
       player.y = 100;
+
+      this.glLayer.topEffectDrawer.addObjType("effect", {
+        texture: "texture0.png",
+        count: 2,
+        // additiveBlending: true,
+      });
+      var marker1 = this.glLayer.topEffectDrawer.get("effect");
+      marker1.spawn({
+        scaleX: 14,
+        scaleY: 14,
+        frameX: 7 / 8,
+        frameY: 0 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 0.4,
+        green: 2.0,
+        blue: 1.6,
+        alpha: 1.0,
+      });
+      marker1.addChildTo(this.glLayer);
+      marker1.on("enterframe", function() {
+        this.x = player.x;
+        this.y = player.y;
+        this.rotation += 0.1;
+      });
+      var marker2 = this.glLayer.topEffectDrawer.get("effect");
+      marker2.spawn({
+        scaleX: 8,
+        scaleY: 8,
+        frameX: 7 / 8,
+        frameY: 0 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 0.4,
+        green: 2.0,
+        blue: 1.6,
+        alpha: 1.0,
+        rotation: 0.5,
+      });
+      marker2.addChildTo(this.glLayer);
+      marker2.on("enterframe", function() {
+        this.x = player.x;
+        this.y = player.y;
+        this.rotation += 0.1;
+      });
+      var marker3 = this.glLayer.effectDrawer.get("effect");
+      marker3.spawn({
+        scaleX: 80,
+        scaleY: 80,
+        frameX: 0 / 8,
+        frameY: 1 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 2.0,
+        green: 2.0,
+        blue: 2.0,
+        alpha: 0.3,
+      });
+      marker3.addChildTo(this.glLayer);
+      marker3.on("enterframe", function() {
+        this.x = player.x;
+        this.y = player.y;
+      });
+
+      bulletml.dsl();
+      var ptn = new bulletml.Root({
+        top0: action([
+          repeat(Infinity, [
+            repeat(50, [
+              fire(bullet({ type: 9 }), direction(7, "sequence"), speed(3.0)),
+              fire(bullet({ type: 1 }), direction(90, "sequence"), speed(2.0)),
+              fire(bullet({ type: 9 }), direction(90, "sequence"), speed(3.0)),
+              fire(bullet({ type: 1 }), direction(90, "sequence"), speed(2.0)),
+              fire(bullet({ type: 9 }), direction(90, "sequence"), speed(3.0)),
+              wait(1),
+            ]),
+            wait(120),
+          ]),
+        ]),
+      });
+
+      var glLayer = this.glLayer;
+      var bulletDrawer = this.glLayer.bulletDrawer;
+
+      var runner = ptn.createRunner({
+        target: player,
+        createNewBullet: function(runner, spec) {
+          var b = bulletDrawer.get();
+          if (b) {
+            b.spawn(runner, {
+              type: spec.type,
+              scale: 32,
+            });
+            b.addChildTo(glLayer);
+          }
+        },
+      });
+      player.on("enterframe", function() {
+        runner.x = this.x;
+        runner.y = this.y;
+        runner.update();
+      });
     },
 
     drawBgTexture: function() {
       var bgTexture = phina.graphics.Canvas();
       bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
       bgTexture.clearColor("hsla(190, 100%, 95%, 0.1)");
-      bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.2)";
-      (100).times(function(i, j) {
+      (150).times(function(i, j) {
         var y = (SCREEN_HEIGHT * 1.5) / j * i;
+        bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.2)";
+        bgTexture.strokeLines(
+          SCREEN_WIDTH * 0.0, y - 10,
+          SCREEN_WIDTH * 0.1, y - 10,
+          SCREEN_WIDTH * 0.2, y + 20,
+          SCREEN_WIDTH * 0.5, y + 20,
+          SCREEN_WIDTH * 0.6, y - 30,
+          SCREEN_WIDTH * 0.7, y - 30,
+          SCREEN_WIDTH * 0.8, y - 50,
+          SCREEN_WIDTH * 1.0, y - 50
+        );
+        bgTexture.strokeStyle = "hsla(190, 100%, 65%, 0.2)";
+        y += 1;
+        bgTexture.strokeLines(
+          SCREEN_WIDTH * 0.0, y - 10,
+          SCREEN_WIDTH * 0.1, y - 10,
+          SCREEN_WIDTH * 0.2, y + 20,
+          SCREEN_WIDTH * 0.5, y + 20,
+          SCREEN_WIDTH * 0.6, y - 30,
+          SCREEN_WIDTH * 0.7, y - 30,
+          SCREEN_WIDTH * 0.8, y - 50,
+          SCREEN_WIDTH * 1.0, y - 50
+        );
+        bgTexture.strokeStyle = "hsla(190, 100%, 35%, 0.2)";
+        y += 1;
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,
           SCREEN_WIDTH * 0.1, y - 10,

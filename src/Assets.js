@@ -6,6 +6,9 @@ phina.namespace(function() {
         switch (options.assetType) {
           case "common":
             return {
+              font: {
+                main: "./asset/font/Baumans/Baumans-Regular.ttf",
+              },
               image: {
                 "test.png": "./asset/image/test.png",
                 "bullets.png": "./asset/image/bullets.png",

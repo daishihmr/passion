@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+
+<body style="background:black">
+  <script src="../lib/phina.js"></script>
+  <script>
+  phina.globalize();
+  phina.main(function() {
+    var c = Canvas().setSize(64, 64);
+    var g = c.context.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0.0, "rgba(255, 255, 255, 0.5)");
+    g.addColorStop(0.3, "rgba(255, 255, 255, 0.5)");
+    g.addColorStop(1.0, "rgba(255, 255, 255, 0.9)");
+    c.fillStyle = g;
+    c.fillPolygon(32, 32, 30, 6, 90);
+    document.body.appendChild(c.domElement);
+  });
+  </script>
+</body>
+
+</html>

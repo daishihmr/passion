@@ -19,8 +19,9 @@ phina.namespace(function() {
     bgDrawer: null,
     enemyDrawer: null,
     effectDrawer: null,
-    bulletDrawer: null,
     playerDrawer: null,
+    bulletDrawer: null,
+    topEffectDrawer: null,
 
     init: function() {
       this.superInit({
@@ -46,6 +47,8 @@ phina.namespace(function() {
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.clearDepth(1.0);
       gl.disable(gl.CULL_FACE);
+      gl.enable(gl.BLEND);
+      gl.disable(gl.DEPTH_TEST);
 
       var cw = this.domElement.width;
       var ch = this.domElement.height;
@@ -63,8 +66,9 @@ phina.namespace(function() {
       this.bgDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.enemyDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
       this.effectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
-      this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
       this.playerDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
+      this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
+      this.topEffectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
 
       this.ready = true;
     },
@@ -75,8 +79,9 @@ phina.namespace(function() {
       this.bgDrawer.update(app);
       this.enemyDrawer.update(app);
       this.effectDrawer.update(app);
-      this.bulletDrawer.update(app);
       this.playerDrawer.update(app);
+      this.bulletDrawer.update(app);
+      this.topEffectDrawer.update(app);
     },
 
     draw: function(canvas) {
@@ -94,8 +99,9 @@ phina.namespace(function() {
       this.bgDrawer.render(ou);
       this.enemyDrawer.render(ou);
       this.effectDrawer.render(ou);
-      this.bulletDrawer.render(ou);
       this.playerDrawer.render(ou);
+      this.bulletDrawer.render(ou);
+      this.topEffectDrawer.render(ou);
 
       gl.flush();
 
@@ -103,7 +109,7 @@ phina.namespace(function() {
     },
 
     _static: {
-      // quality: 0.5,
+      // quality: 0.75,
       quality: 1.0,
     },
   });

@@ -11,6 +11,9 @@ phina.main(function() {
     height: SCREEN_HEIGHT,
     backgroundColor: "transparent",
   });
+  
+  phina.display.Label.defaults.fontFamily = "main";
+  phina.display.Label.defaults.fill = "white";
 
   var app = passion.Application();
   app.enableStats();
