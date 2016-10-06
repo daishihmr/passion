@@ -2,9 +2,13 @@ phina.namespace(function() {
 
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
+    
+    gameManager: null,
 
     init: function() {
       this.superInit();
+      
+      this.gameManager = passion.GameManager();
 
       this.fromJSON({
         children: {
@@ -19,6 +23,7 @@ phina.namespace(function() {
           },
           uiLayer: {
             className: "passion.UILayer",
+            arguments: this.gameManager,
           },
         },
       });
@@ -48,30 +53,53 @@ phina.namespace(function() {
         if (e.app.ticker.frame % 2 !== 0) return;
         var hex = this.glLayer.effectDrawer.get("effect");
         if (hex) {
-          var dx = Math.randfloat(-1, 1);
           hex.onenterframe = function() {
-            this.x += dx;
             this.y += 2;
-            this.alpha *= 0.9;
+            this.alpha *= 0.80;
             if (this.alpha < 0.01) {
               this.remove();
             }
           };
-          var s = Math.randfloat(22, 32);
           hex.spawn({
-            scaleX: s,
-            scaleY: s,
+            scaleX: 18,
+            scaleY: 18,
             frameX: 7 / 8,
             frameY: 0 / 8,
             frameW: 1 / 8,
             frameH: 1 / 8,
-            red: 0.2,
+            red: 1.0,
             green: 1.0,
-            blue: 0.8,
+            blue: 1.0,
             alpha: 1.0,
           });
           hex.addChildTo(this.glLayer);
-          hex.x = player.x;
+          hex.x = player.x - 8;
+          hex.y = player.y + 15;
+        }
+
+        var hex = this.glLayer.effectDrawer.get("effect");
+        if (hex) {
+          hex.onenterframe = function() {
+            this.y += 2;
+            this.alpha *= 0.80;
+            if (this.alpha < 0.01) {
+              this.remove();
+            }
+          };
+          hex.spawn({
+            scaleX: 18,
+            scaleY: 18,
+            frameX: 7 / 8,
+            frameY: 0 / 8,
+            frameW: 1 / 8,
+            frameH: 1 / 8,
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 1.0,
+          });
+          hex.addChildTo(this.glLayer);
+          hex.x = player.x + 8;
           hex.y = player.y + 15;
         }
       });
@@ -186,7 +214,7 @@ phina.namespace(function() {
       player.on("enterframe", function() {
         runner.x = this.x;
         runner.y = this.y;
-        runner.update();
+        // runner.update();
       });
     },
 

@@ -427,7 +427,7 @@ phina.namespace(function() {
              className: "phina.display.Label",
              arguments: {
                text: options.text,
-               fontSize: 24,
+               fontSize: options.fontSize || 24,
                // fontWeight: "bold",
                fontFamily: "main",
              },
@@ -602,8 +602,8 @@ phina.namespace(function() {
     },
 
     _static: {
-      // quality: 0.75,
-      quality: 1.0,
+      quality: 0.75,
+      // quality: 1.0,
     },
   });
 
@@ -631,6 +631,9 @@ phina.namespace(function() {
         frameY: 0 / 8,
         frameW: 1 / 8,
         frameH: 1 / 8,
+        red: 1.2,
+        green: 1.2,
+        blue: 1.2,
       });
       return this;
     },
@@ -639,16 +642,26 @@ phina.namespace(function() {
       var p = app.pointer;
       var dp = p.deltaPosition;
 
-      if (p.getPointing()) {
+      if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
         this.x += dp.x * 2;
         this.y += dp.y * 2;
+        if (dp.x < 0) {
+          this.roll -= 0.2;
+        } else if (0 < dp.x) {
+          this.roll += 0.2;
+        } else {
+          this.roll *= 0.9;
+          if (-0.1 < this.roll && this.roll < 0.1) {
+            this.roll = 0;
+          }
+        }
 
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
         this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
       }
     },
     
-    acceccor: {
+    _accessor: {
       roll: {
         get: function() {
           return this._roll;
@@ -1013,12 +1026,19 @@ phina.namespace(function() {
   phina.define("passion.UILayer", {
     superClass: "phina.display.DisplayElement",
 
-    init: function() {
+    init: function(gameManager) {
       this.superInit();
       this.fromJSON({
         originX: 0,
         originY: 0,
         children: {
+          damage: {
+            className: "phina.display.Sprite",
+            arguments: this.damageTexture(),
+            originX: 0,
+            originY: 0,
+            alpha: 0.0,
+          },
           scoreBg: {
             className: "passion.UIFrame",
             arguments: {
@@ -1038,28 +1058,54 @@ phina.namespace(function() {
                   baseline: "middle",
                   fontSize: GAME_AREA_HEIGHT * 0.04,
                 },
-                x: GAME_AREA_WIDTH * 0.96,
+                x: GAME_AREA_WIDTH * 0.55,
                 y: GAME_AREA_HEIGHT * 0.04,
+              },
+              hi: {
+                className: "phina.display.Label",
+                arguments: {
+                  text: "HI",
+                  align: "left",
+                  baseline: "middle",
+                  fontSize: GAME_AREA_HEIGHT * 0.03,
+                },
+                x: GAME_AREA_WIDTH * 0.60,
+                y: GAME_AREA_HEIGHT * 0.042,
+              },
+              highscoreLabel: {
+                className: "phina.display.Label",
+                arguments: {
+                  text: "1,234,567,890",
+                  align: "right",
+                  baseline: "middle",
+                  fontSize: GAME_AREA_HEIGHT * 0.03,
+                },
+                x: GAME_AREA_WIDTH * 0.96,
+                y: GAME_AREA_HEIGHT * 0.042,
               },
             },
           },
           button: {
             className: "passion.CircleButton",
             arguments: {
-              text: "B",
-              radius: GAME_AREA_WIDTH * 0.08,
+              text: "BOMB",
+              fontSize: 15,
+              radius: GAME_AREA_WIDTH * 0.09,
             },
             x: GAME_AREA_WIDTH * 0.10,
-            y: GAME_AREA_HEIGHT * 0.94,
-          },
-          damage: {
-            className: "phina.display.Sprite",
-            arguments: this.damageTexture(),
-            originX: 0,
-            originY: 0,
-            alpha: 0.0,
+            y: GAME_AREA_HEIGHT * 0.93,
           },
         },
+      });
+
+      var self = this;
+      gameManager.on("updateScore", function() {
+        self.scoreBg.scoreLabel.text = passion.Utils.sep(this.score);
+        if (this.highScore < this.score) {
+          self.scoreBg.highscoreLabel.text = passion.Utils.sep(this.highScore);
+        }
+      });
+      gameManager.on("damage", function(e) {
       });
     },
 
@@ -1073,6 +1119,21 @@ phina.namespace(function() {
       c.fillStyle = g;
       c.fillRect(0, 0, GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
       return c;
+    },
+
+  });
+});
+
+phina.namespace(function() {
+  
+  phina.define("passion.GameManager", {
+    superClass: "phina.util.EventDispatcher",
+    
+    score: 0,
+    highScore: 0,
+    
+    init: function() {
+      this.superInit();
     },
 
   });
@@ -1118,9 +1179,13 @@ phina.namespace(function() {
 
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
+    
+    gameManager: null,
 
     init: function() {
       this.superInit();
+      
+      this.gameManager = passion.GameManager();
 
       this.fromJSON({
         children: {
@@ -1135,6 +1200,7 @@ phina.namespace(function() {
           },
           uiLayer: {
             className: "passion.UILayer",
+            arguments: this.gameManager,
           },
         },
       });
@@ -1164,30 +1230,53 @@ phina.namespace(function() {
         if (e.app.ticker.frame % 2 !== 0) return;
         var hex = this.glLayer.effectDrawer.get("effect");
         if (hex) {
-          var dx = Math.randfloat(-1, 1);
           hex.onenterframe = function() {
-            this.x += dx;
             this.y += 2;
-            this.alpha *= 0.9;
+            this.alpha *= 0.80;
             if (this.alpha < 0.01) {
               this.remove();
             }
           };
-          var s = Math.randfloat(22, 32);
           hex.spawn({
-            scaleX: s,
-            scaleY: s,
+            scaleX: 18,
+            scaleY: 18,
             frameX: 7 / 8,
             frameY: 0 / 8,
             frameW: 1 / 8,
             frameH: 1 / 8,
-            red: 0.2,
+            red: 1.0,
             green: 1.0,
-            blue: 0.8,
+            blue: 1.0,
             alpha: 1.0,
           });
           hex.addChildTo(this.glLayer);
-          hex.x = player.x;
+          hex.x = player.x - 8;
+          hex.y = player.y + 15;
+        }
+
+        var hex = this.glLayer.effectDrawer.get("effect");
+        if (hex) {
+          hex.onenterframe = function() {
+            this.y += 2;
+            this.alpha *= 0.80;
+            if (this.alpha < 0.01) {
+              this.remove();
+            }
+          };
+          hex.spawn({
+            scaleX: 18,
+            scaleY: 18,
+            frameX: 7 / 8,
+            frameY: 0 / 8,
+            frameW: 1 / 8,
+            frameH: 1 / 8,
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 1.0,
+          });
+          hex.addChildTo(this.glLayer);
+          hex.x = player.x + 8;
           hex.y = player.y + 15;
         }
       });
@@ -1302,7 +1391,7 @@ phina.namespace(function() {
       player.on("enterframe", function() {
         runner.x = this.x;
         runner.y = this.y;
-        runner.update();
+        // runner.update();
       });
     },
 
@@ -1352,6 +1441,19 @@ phina.namespace(function() {
     },
 
   });
+});
+
+phina.namespace(function() {
+
+  phina.define("passion.Utils", {
+    _static: {
+      sep: function(num) {
+        return ("" + Math.floor(num)).replace(/(\d)(?=(\d{3})+$)/g , '$1,');
+      },
+    },
+    init: function() {},
+  });
+
 });
 
 //# sourceMappingURL=passion.js.map

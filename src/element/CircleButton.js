@@ -22,7 +22,7 @@
              className: "phina.display.Label",
              arguments: {
                text: options.text,
-               fontSize: 24,
+               fontSize: options.fontSize || 24,
                // fontWeight: "bold",
                fontFamily: "main",
              },

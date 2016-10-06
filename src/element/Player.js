@@ -20,6 +20,9 @@ phina.namespace(function() {
         frameY: 0 / 8,
         frameW: 1 / 8,
         frameH: 1 / 8,
+        red: 1.2,
+        green: 1.2,
+        blue: 1.2,
       });
       return this;
     },
@@ -28,16 +31,26 @@ phina.namespace(function() {
       var p = app.pointer;
       var dp = p.deltaPosition;
 
-      if (p.getPointing()) {
+      if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
         this.x += dp.x * 2;
         this.y += dp.y * 2;
+        if (dp.x < 0) {
+          this.roll -= 0.2;
+        } else if (0 < dp.x) {
+          this.roll += 0.2;
+        } else {
+          this.roll *= 0.9;
+          if (-0.1 < this.roll && this.roll < 0.1) {
+            this.roll = 0;
+          }
+        }
 
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
         this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
       }
     },
     
-    acceccor: {
+    _accessor: {
       roll: {
         get: function() {
           return this._roll;

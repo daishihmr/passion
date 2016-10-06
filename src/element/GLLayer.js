@@ -109,8 +109,8 @@ phina.namespace(function() {
     },
 
     _static: {
-      // quality: 0.75,
-      quality: 1.0,
+      quality: 0.75,
+      // quality: 1.0,
     },
   });
 
