@@ -1,0 +1,26 @@
+bulletml
+  action(label='top')
+    repeat
+      times Infinity
+      action
+        repeat
+          times 20
+          action
+            fire
+              direction(type='sequence') 7
+              speed 4
+              bullet(option='{"type":0}')
+            fire
+              direction(type='sequence') 90
+              speed 4
+              bullet(option='{"type":0}')
+            fire
+              direction(type='sequence') 90
+              speed 4
+              bullet(option='{"type":0}')
+            wait 1
+            fire
+              direction(type='sequence') 90
+              speed 4
+              bullet(option='{"type":0}')
+        wait 150

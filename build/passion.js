@@ -66,11 +66,15 @@ phina.namespace(function() {
             return {
               font: {
                 main: "./asset/font/Baumans/Baumans-Regular.ttf",
+                message: "./asset/font/YasashisaGothic.ttf",
               },
               image: {
                 "test.png": "./asset/image/test.png",
+                "test2.png": "./asset/image/test2.png",
+                "bg.png": "./asset/image/bg.png",
                 "bullets.png": "./asset/image/bullets.png",
                 "texture0.png": "./asset/image/texture0.png",
+                "enemy1.png": "./asset/image/enemy1.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",
@@ -79,6 +83,10 @@ phina.namespace(function() {
               fragmentShader: {
                 "bullets.fs": "./asset/shader/bullets.fs",
                 "sprites.fs": "./asset/shader/sprites.fs",
+              },
+              xml: {
+                "simple": "./asset/bulletml/simple.bulletml",
+                "test": "./asset/bulletml/test.bulletml",
               },
             };
           default:
@@ -142,24 +150,112 @@ phina.namespace(function() {
 });
 
 phina.namespace(function() {
-  
+
+  phina.define("passion.Danmaku", {
+    _static: {
+      config: null,
+      setup: function(gameScene) {
+        var player = gameScene.player;
+        var bullets = gameScene.bullets;
+        var enemies = gameScene.enemies;
+        var glLayer = gameScene.glLayer;
+        var bulletDrawer = glLayer.bulletDrawer;
+        var enemyDrawer = glLayer.enemyDrawer;
+
+        this.config = {
+          target: player,
+          createNewBullet: function(runner, spec) {
+            if (spec.missile) {
+              var missile = enemyDrawer.get("enemy");
+              if (missile) {
+                missile.spawn({
+                  x: runner.x,
+                  y: runner.y,
+                  rotation: runner.direction,
+                  scaleX: 32,
+                  scaleY: 32,
+                  frameX: 0,
+                  frameY: 0,
+                  frameW: 1 / 8,
+                  frameH: 1 / 8,
+                });
+                missile.isMissile = true;
+                missile.runner = runner;
+                missile.addChildTo(glLayer);
+                enemies.push(missile);
+              }
+            } else {
+              var bullet = bulletDrawer.get();
+              if (bullet) {
+                bullet.spawn(runner, {
+                  type: spec.type,
+                  scale: 32,
+                });
+                bullet.addChildTo(glLayer);
+                bullets.push(bullet);
+              }
+            }
+          },
+        };
+
+        return this.config;
+      },
+    },
+
+    init: function() {},
+  });
+});
+
+phina.namespace(function() {
+
   phina.define("passion.Background", {
     superClass: "passion.Sprite",
-    
+
+    _static: {
+      setup: function(glLayer, texture) {
+        var texSrc = phina.asset.AssetManager.get("image", texture);
+        var height = texSrc.domElement.height * GAME_AREA_WIDTH / texSrc.domElement.width;
+        var tex = phina.graphics.Canvas().setSize(512, 512);
+        tex.context.drawImage(texSrc.domElement, 0, 0, 512, 512);
+        phina.asset.AssetManager.set("image", texture + "_bg", tex);
+
+        glLayer.bgDrawer.addObjType("bg", {
+          className: "passion.Background",
+          texture: texture + "_bg",
+          count: 2,
+        });
+
+        var bg1 = glLayer.bgDrawer.get("bg");
+        bg1.spawn(height);
+        bg1.x = GAME_AREA_WIDTH / 2;
+        bg1.y = GAME_AREA_HEIGHT / 2;
+        bg1.addChildTo(glLayer);
+
+        var bg2 = glLayer.bgDrawer.get("bg");
+        bg2.spawn(height);
+        bg2.x = GAME_AREA_WIDTH / 2;
+        bg2.y = GAME_AREA_HEIGHT / 2 - height;
+        bg2.addChildTo(glLayer);
+      },
+    },
+
+    height: 0,
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("enterframe", function() {
         this.y += 3;
-        if (this.y > GAME_AREA_HEIGHT / 2 + 640) {
-          this.y -= 640 * 2;
+        if (this.y > GAME_AREA_HEIGHT / 2 + this.height) {
+          this.y -= this.height * 2;
         }
       });
     },
 
-    spawn: function() {
+    spawn: function(height) {
+      this.height = height;
       passion.Sprite.prototype.spawn.call(this, {
-        scaleX: 360,
-        scaleY: 640,
+        scaleX: GAME_AREA_WIDTH,
+        scaleY: this.height,
         frameX: 0,
         frameY: 0,
         frameW: 1,
@@ -173,6 +269,7 @@ phina.namespace(function() {
 
   });
 });
+
 phina.namespace(function() {
 
   phina.define("passion.Bullet", {
@@ -280,7 +377,7 @@ phina.namespace(function() {
     instanceData: null,
 
     pool: null,
-    _count: 500,
+    _count: 300,
 
     init: function(gl, ext, w, h) {
       this.superInit(gl, ext);
@@ -492,7 +589,81 @@ phina.namespace(function() {
  });
 
 phina.namespace(function() {
-  
+
+  phina.define("passion.Enemy", {
+    superClass: "passion.Sprite",
+
+    runner: null,
+
+    hp: 0,
+    active: false,
+    // vs shot
+    damageRadius: 0,
+    // vs player
+    attackRadius: 0,
+
+    isMissile: false,
+    isEntered: false,
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.on("removed", function() {
+        this.clear("everyframe");
+        this.clear("damaged");
+        this.clear("killed");
+        this.tweener.clear();
+        this.stopAttack();
+        this.isMissile = false;
+        this.isEntered = false;
+      });
+      this.on("enterframe", function() {
+        if (this.isEntered) {
+          if (this.x < -this.damageRadius || GAME_AREA_WIDTH + this.damageRadius < this.x || this.y < -this.damageRadius || GAME_AREA_HEIGHT + this.damageRadius < this.y) {
+            this.remove();
+            return;
+          }
+        } else {
+          if (this.damageRadius < this.x && this.x < GAME_AREA_WIDTH - this.damageRadius && this.damageRadius < this.y && this.y < GAME_AREA_HEIGHT - this.damageRadius) {
+            this.isEntered = true;
+          }
+        }
+
+        if (this.runner) {
+          this.runner.x = this.x;
+          this.runner.y = this.y;
+          this.runner.update();
+          if (this.isMissile) {
+            this.x = this.runner.x;
+            this.y = this.runner.y;
+          }
+        }
+      });
+    },
+
+    spawn: function(options) {
+      passion.Sprite.prototype.spawn.call(this, options);
+      this.hp = options.hp || 0;
+      this.damageRadius = options.damageRadius || 48;
+      this.attackRadius = options.attackRadius || 24;
+      return this;
+    },
+
+    startAttack: function(bulletmlName) {
+      var bulletmlDoc = phina.asset.AssetManager.get("xml", bulletmlName);
+      var pattern = bulletml.buildXML(bulletmlDoc.data);
+      var config = passion.Danmaku.config;
+      this.runner = pattern.createRunner(config);
+    },
+
+    stopAttack: function() {
+      this.runner = null;
+    },
+
+  });
+});
+
+phina.namespace(function() {
+
   phina.define("passion.GLLayer", {
     superClass: "phina.display.Layer",
 
@@ -590,20 +761,28 @@ phina.namespace(function() {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       this.bgDrawer.render(ou);
-      this.enemyDrawer.render(ou);
       this.effectDrawer.render(ou);
       this.playerDrawer.render(ou);
+      this.enemyDrawer.render(ou);
       this.bulletDrawer.render(ou);
       this.topEffectDrawer.render(ou);
 
       gl.flush();
 
-      canvas.context.drawImage(image, 0, 0, cw, ch, 0, 0, this.width, this.height);
+      var p = passion.GLLayer.padding;
+      canvas.context.drawImage(image,
+        0, 0, cw, ch,
+        this.width * p, this.height * p, this.width * (1 - p * 2), this.height * (1 - p * 2)
+      );
     },
 
     _static: {
-      quality: 0.75,
-      // quality: 1.0,
+      // padding: 0.1,
+      // padding: 0.05,
+      padding: 0.01,
+      // quality: 0.5,
+      // quality: 0.75,
+      quality: 1.0,
     },
   });
 
@@ -613,7 +792,103 @@ phina.namespace(function() {
 
   phina.define("passion.Player", {
     superClass: "passion.Sprite",
-    
+
+    _static: {
+      setup: function(glLayer) {
+        glLayer.playerDrawer.addObjType("player", {
+          className: "passion.Player",
+          texture: "texture0.png",
+        });
+
+        var player = glLayer.playerDrawer.get("player");
+        player.spawn();
+        player.addChildTo(glLayer);
+
+        player.on("enterframe", function(e) {
+          if (e.app.ticker.frame % 2 !== 0) return;
+
+          var hex1 = glLayer.effectDrawer.get("effect");
+          var hex2 = glLayer.effectDrawer.get("effect");
+          var options = {
+            x: player.x - 8,
+            y: player.y + 15,
+            scaleX: 18,
+            scaleY: 18,
+            frameX: 7 / 8,
+            frameY: 0 / 8,
+            frameW: 1 / 8,
+            frameH: 1 / 8,
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 1.0,
+          };
+          var oefl = function() {
+            this.y += 2;
+            this.alpha *= 0.80;
+            if (this.alpha < 0.01) {
+              this.remove();
+            }
+          };
+
+          if (hex1) {
+            options.x = player.x - 8;
+            hex1.spawn(options);
+            hex1.onenterframe = oefl;
+            hex1.addChildTo(glLayer);
+          }
+
+          if (hex2) {
+            options.x = player.x + 8;
+            hex2.spawn(options);
+            hex2.onenterframe = oefl;
+            hex2.addChildTo(glLayer);
+          }
+        });
+
+        var aura = glLayer.effectDrawer.get("effect");
+        aura.spawn({
+          scaleX: 80,
+          scaleY: 80,
+          frameX: 0 / 8,
+          frameY: 1 / 8,
+          frameW: 1 / 8,
+          frameH: 1 / 8,
+          red: 2.0,
+          green: 2.0,
+          blue: 2.0,
+          alpha: 0.2,
+        });
+        aura.addChildTo(glLayer);
+        aura.on("enterframe", function() {
+          this.x = player.x;
+          this.y = player.y;
+        });
+
+        var centerMarker = glLayer.topEffectDrawer.get("effect");
+        centerMarker.spawn({
+          scaleX: 14,
+          scaleY: 14,
+          frameX: 7 / 8,
+          frameY: 0 / 8,
+          frameW: 1 / 8,
+          frameH: 1 / 8,
+          red: 0.4,
+          green: 2.0,
+          blue: 1.6,
+          alpha: 1.0,
+        });
+        centerMarker.addChildTo(glLayer);
+        centerMarker.on("enterframe", function() {
+          this.x = player.x;
+          this.y = player.y;
+          this.rotation += 0.1;
+        });
+
+        return player;
+      },
+    },
+
     _roll: 0,
 
     init: function(id, instanceData, instanceStride) {
@@ -625,8 +900,8 @@ phina.namespace(function() {
 
     spawn: function() {
       passion.Sprite.prototype.spawn.call(this, {
-        scaleX: 60,
-        scaleY: 60,
+        scaleX: 75,
+        scaleY: 75,
         frameX: 3 / 8,
         frameY: 0 / 8,
         frameW: 1 / 8,
@@ -635,6 +910,8 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
+      this.x = GAME_AREA_WIDTH * 0.5;
+      this.y = GAME_AREA_HEIGHT * 0.9;
       return this;
     },
 
@@ -649,18 +926,20 @@ phina.namespace(function() {
           this.roll -= 0.2;
         } else if (0 < dp.x) {
           this.roll += 0.2;
-        } else {
-          this.roll *= 0.9;
-          if (-0.1 < this.roll && this.roll < 0.1) {
-            this.roll = 0;
-          }
         }
 
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
         this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
       }
+
+      if (dp.x == 0) {
+        this.roll *= 0.9;
+        if (-0.01 < this.roll && this.roll < 0.01) {
+          this.roll = 0;
+        }
+      }
     },
-    
+
     _accessor: {
       roll: {
         get: function() {
@@ -669,7 +948,6 @@ phina.namespace(function() {
         set: function(v) {
           this._roll = Math.clamp(v, -3, 3);
           var r = ~~this._roll;
-          if (-3 < r && r < 0) r += 1;
           this.frameX = (r + 3) / 8;
         },
       },
@@ -1023,6 +1301,143 @@ phina.namespace(function() {
 
 phina.namespace(function() {
 
+  phina.define("passion.UIHeadLabel", {
+    superClass: "phina.display.Shape",
+
+    init: function(options) {
+      this.superInit(options);
+      this.backgroundColor = "transparent";
+      this.stroke = "hsla(190, 100%, 60%, 1.0)";
+      this.strokeWidth = 1;
+      this.fromJSON({
+        children: {
+          text: {
+            className: "phina.display.Label",
+            arguments: {
+              text: options.text,
+              fontSize: options.fontSize || 24,
+              // fontWeight: "bold",
+              fontFamily: options.fontFamily || "main",
+              align: options.align || "center",
+            },
+            fill: "hsla(190, 100%, 95%, 0.8)",
+            strokeWidth: 0,
+          },
+        },
+      });
+    },
+
+    prerender: function(canvas) {
+      var c = canvas.context;
+      var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+      fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.2)");
+      fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.2)");
+      fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.2)");
+      fg.addColorStop(1.00, "hsla(190, 100%, 50%, 0.2)");
+      this.fill = fg;
+    },
+
+    postrender: function(canvas) {
+      var c = canvas.context;
+
+      c.beginPath();
+      c.moveTo(-this.width / 2, this.height / 2);
+      c.lineTo(-this.width / 2, -this.height / 2 + 10);
+      c.lineTo(-this.width / 2 + 10, -this.height / 2);
+      c.lineTo(this.width / 2, -this.height / 2);
+      c.lineTo(this.width / 2, this.height / 2 - 10);
+      c.lineTo(this.width / 2 - 10, this.height / 2);
+      c.closePath();
+      c.fill();
+
+      c.beginPath();
+      c.moveTo(-this.width / 2, this.height / 2);
+      c.lineTo(-this.width / 2, -this.height / 2 + 10);
+      c.lineTo(-this.width / 2 + 10, -this.height / 2);
+      c.stroke();
+
+      c.beginPath();
+      c.moveTo(this.width / 2, -this.height / 2);
+      c.lineTo(this.width / 2, this.height / 2 - 10);
+      c.lineTo(this.width / 2 - 10, this.height / 2);
+      c.stroke();
+    },
+
+  });
+});
+
+phina.namespace(function() {
+
+  phina.define("passion.UIHead2Label", {
+    superClass: "phina.display.Shape",
+
+    init: function(options) {
+      this.superInit(options);
+      this.backgroundColor = "transparent";
+      this.strokeWidth = 1;
+      this.fromJSON({
+        children: {
+          text: {
+            className: "phina.display.Label",
+            arguments: {
+              text: options.text,
+              fontSize: options.fontSize || 24,
+              // fontWeight: "bold",
+              fontFamily: options.fontFamily || "main",
+              align: options.align || "center",
+            },
+            fill: "hsla(190, 100%, 95%, 0.8)",
+            strokeWidth: 0,
+          },
+        },
+      });
+    },
+
+    prerender: function(canvas) {
+      var c = canvas.context;
+
+      var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+      fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.2)");
+      fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.2)");
+      fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.2)");
+      fg.addColorStop(1.00, "hsla(190, 100%, 50%, 0.2)");
+      this.fill = fg;
+
+      var sg = c.createLinearGradient(-this.width / 2, 0, this.width / 2, 0);
+      sg.addColorStop(0.00, "hsla(190, 100%, 60%, 0.0)");
+      sg.addColorStop(0.30, "hsla(190, 100%, 60%, 1.0)");
+      sg.addColorStop(0.70, "hsla(190, 100%, 60%, 1.0)");
+      sg.addColorStop(1.00, "hsla(190, 100%, 60%, 0.0)");
+      this.stroke = sg;
+    },
+
+    postrender: function(canvas) {
+      var c = canvas.context;
+
+      c.beginPath();
+      c.moveTo(-this.width / 2, this.height / 2);
+      c.lineTo(-this.width / 2, -this.height / 2);
+      c.lineTo(this.width / 2, -this.height / 2);
+      c.lineTo(this.width / 2, this.height / 2);
+      c.closePath();
+      c.fill();
+
+      c.beginPath();
+      c.moveTo(-this.width / 2, this.height / 2);
+      c.lineTo(this.width / 2, this.height / 2);
+      c.stroke();
+
+      c.beginPath();
+      c.moveTo(-this.width / 2, -this.height / 2);
+      c.lineTo(this.width / 2, -this.height / 2);
+      c.stroke();
+    },
+
+  });
+});
+
+phina.namespace(function() {
+
   phina.define("passion.UILayer", {
     superClass: "phina.display.DisplayElement",
 
@@ -1038,28 +1453,30 @@ phina.namespace(function() {
             originX: 0,
             originY: 0,
             alpha: 0.0,
+            x: GAME_AREA_WIDTH * passion.GLLayer.padding,
+            y: GAME_AREA_HEIGHT * passion.GLLayer.padding,
           },
           scoreBg: {
             className: "passion.UIFrame",
             arguments: {
-              width: GAME_AREA_WIDTH * 0.96,
-              height: GAME_AREA_HEIGHT * 0.05,
+              width: SCREEN_WIDTH * 0.96,
+              height: SCREEN_HEIGHT * 0.05,
             },
-            x: GAME_AREA_WIDTH * 0.01,
-            y: GAME_AREA_HEIGHT * 0.00,
+            x: SCREEN_WIDTH * 0.00,
+            y: SCREEN_HEIGHT * 0.00,
             originX: 0,
             originY: 0,
             children: {
               scoreLabel: {
                 className: "phina.display.Label",
                 arguments: {
-                  text: "1,234,567,890",
+                  text: "9,991,234,567,890",
                   align: "right",
                   baseline: "middle",
-                  fontSize: GAME_AREA_HEIGHT * 0.04,
+                  fontSize: SCREEN_HEIGHT * 0.035,
                 },
-                x: GAME_AREA_WIDTH * 0.55,
-                y: GAME_AREA_HEIGHT * 0.04,
+                x: SCREEN_WIDTH * 0.96,
+                y: SCREEN_HEIGHT * 0.038,
               },
               hi: {
                 className: "phina.display.Label",
@@ -1067,25 +1484,25 @@ phina.namespace(function() {
                   text: "HI",
                   align: "left",
                   baseline: "middle",
-                  fontSize: GAME_AREA_HEIGHT * 0.03,
+                  fontSize: SCREEN_HEIGHT * 0.025,
                 },
-                x: GAME_AREA_WIDTH * 0.60,
-                y: GAME_AREA_HEIGHT * 0.042,
+                x: SCREEN_WIDTH * 0.04,
+                y: SCREEN_HEIGHT * 0.035,
               },
               highscoreLabel: {
                 className: "phina.display.Label",
                 arguments: {
-                  text: "1,234,567,890",
+                  text: "9,991,234,567,890",
                   align: "right",
                   baseline: "middle",
-                  fontSize: GAME_AREA_HEIGHT * 0.03,
+                  fontSize: SCREEN_HEIGHT * 0.025,
                 },
-                x: GAME_AREA_WIDTH * 0.96,
-                y: GAME_AREA_HEIGHT * 0.042,
+                x: SCREEN_WIDTH * 0.44,
+                y: SCREEN_HEIGHT * 0.035,
               },
             },
           },
-          button: {
+          bombButton: {
             className: "passion.CircleButton",
             arguments: {
               text: "BOMB",
@@ -1094,6 +1511,53 @@ phina.namespace(function() {
             },
             x: GAME_AREA_WIDTH * 0.10,
             y: GAME_AREA_HEIGHT * 0.93,
+          },
+          messageWindow: {
+            className: "passion.UIFrame",
+            arguments: {
+              width: SCREEN_WIDTH * 0.96,
+              height: SCREEN_HEIGHT * 0.14,
+            },
+            x: SCREEN_WIDTH * 0.0,
+            y: SCREEN_HEIGHT * 0.84,
+            originX: 0,
+            originY: 0,
+            children: {
+              nameLabel: {
+                className: "passion.UIHead2Label",
+                arguments: {
+                  text: "オペ子",
+                  width: SCREEN_WIDTH * 0.30,
+                  height: SCREEN_HEIGHT * 0.03,
+                  fontSize: 18,
+                  fontFamily: "main, message",
+                },
+                x: SCREEN_WIDTH * 0.20,
+                y: SCREEN_HEIGHT * 0.034,
+              },
+              mesasgeLabel: {
+                className: "phina.display.Label",
+                arguments: {
+                  text: "WARNING!!\n今までにない強大な力が近づいてきます！\n気をつけてください！！",
+                  align: "left",
+                  baseline: "top",
+                  fontSize: 16,
+                  lineHeight: 1.1,
+                  fontFamily: "main, message",
+                },
+                x: SCREEN_WIDTH * 0.05,
+                y: SCREEN_HEIGHT * 0.076,
+              },
+            },
+          },
+          test: {
+            className: "phina.display.Sprite",
+            arguments: "test2.png",
+            x: SCREEN_WIDTH * 1.0,
+            y: SCREEN_HEIGHT * 0.84,
+            originX: 1,
+            originY: 1,
+            visible: false,
           },
         },
       });
@@ -1105,19 +1569,19 @@ phina.namespace(function() {
           self.scoreBg.highscoreLabel.text = passion.Utils.sep(this.highScore);
         }
       });
-      gameManager.on("damage", function(e) {
-      });
+      gameManager.on("damage", function(e) {});
     },
 
     damageTexture: function() {
       var c = phina.graphics.Canvas();
-      c.setSize(GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+      var p = passion.GLLayer.padding;
+      c.setSize(GAME_AREA_WIDTH * (1 - p * 2), GAME_AREA_HEIGHT * (1 - p * 2));
       c.clearColor("transparent");
-      var g = c.context.createRadialGradient(GAME_AREA_WIDTH / 2, GAME_AREA_HEIGHT / 2, 0, GAME_AREA_WIDTH / 2, GAME_AREA_HEIGHT / 2, GAME_AREA_HEIGHT / 2)
+      var g = c.context.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, c.height / 2)
       g.addColorStop(0, "rgba(255, 0, 0, 0.0)");
       g.addColorStop(1, "rgba(255, 0, 0, 1.0)");
       c.fillStyle = g;
-      c.fillRect(0, 0, GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+      c.fillRect(0, 0, c.width, c.height);
       return c;
     },
 
@@ -1179,13 +1643,17 @@ phina.namespace(function() {
 
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
-    
+
     gameManager: null,
+    enemies: null,
+    bullets: null,
 
     init: function() {
       this.superInit();
-      
+
       this.gameManager = passion.GameManager();
+      this.enemies = [];
+      this.bullets = [];
 
       this.fromJSON({
         children: {
@@ -1205,203 +1673,102 @@ phina.namespace(function() {
         },
       });
 
-      this.glLayer.bgDrawer.addObjType("bg", {
-        className: "passion.Background",
-        texture: "test.png",
-        count: 2,
-      });
-      var bg = this.glLayer.bgDrawer.get("bg");
-      bg.spawn();
-      bg.x = GAME_AREA_WIDTH / 2;
-      bg.y = GAME_AREA_HEIGHT / 2;
-      bg.addChildTo(this.glLayer);
-      var bg2 = this.glLayer.bgDrawer.get("bg");
-      bg2.spawn();
-      bg2.x = GAME_AREA_WIDTH / 2;
-      bg2.y = GAME_AREA_HEIGHT / 2 - 640;
-      bg2.addChildTo(this.glLayer);
+      var self = this;
+      var glLayer = this.glLayer;
+      var bulletDrawer = glLayer.bulletDrawer;
 
-      this.glLayer.effectDrawer.addObjType("effect", {
+      glLayer.effectDrawer.addObjType("effect", {
         texture: "texture0.png",
         additiveBlending: true,
-        count: 500,
+        count: 200,
       });
-      this.on("enterframe", function(e) {
-        if (e.app.ticker.frame % 2 !== 0) return;
-        var hex = this.glLayer.effectDrawer.get("effect");
-        if (hex) {
-          hex.onenterframe = function() {
-            this.y += 2;
-            this.alpha *= 0.80;
-            if (this.alpha < 0.01) {
-              this.remove();
-            }
-          };
-          hex.spawn({
-            scaleX: 18,
-            scaleY: 18,
-            frameX: 7 / 8,
-            frameY: 0 / 8,
-            frameW: 1 / 8,
-            frameH: 1 / 8,
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 1.0,
-          });
-          hex.addChildTo(this.glLayer);
-          hex.x = player.x - 8;
-          hex.y = player.y + 15;
-        }
-
-        var hex = this.glLayer.effectDrawer.get("effect");
-        if (hex) {
-          hex.onenterframe = function() {
-            this.y += 2;
-            this.alpha *= 0.80;
-            if (this.alpha < 0.01) {
-              this.remove();
-            }
-          };
-          hex.spawn({
-            scaleX: 18,
-            scaleY: 18,
-            frameX: 7 / 8,
-            frameY: 0 / 8,
-            frameW: 1 / 8,
-            frameH: 1 / 8,
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 1.0,
-          });
-          hex.addChildTo(this.glLayer);
-          hex.x = player.x + 8;
-          hex.y = player.y + 15;
-        }
-      });
-
-      this.glLayer.playerDrawer.addObjType("player", {
-        className: "passion.Player",
-        texture: "texture0.png",
-      });
-
-      var player = this.glLayer.playerDrawer.get("player");
-      player.spawn();
-      player.addChildTo(this.glLayer);
-      player.x = 100;
-      player.y = 100;
-
-      this.glLayer.topEffectDrawer.addObjType("effect", {
+      glLayer.topEffectDrawer.addObjType("effect", {
         texture: "texture0.png",
         count: 2,
-        // additiveBlending: true,
       });
-      var marker1 = this.glLayer.topEffectDrawer.get("effect");
-      marker1.spawn({
-        scaleX: 14,
-        scaleY: 14,
-        frameX: 7 / 8,
-        frameY: 0 / 8,
-        frameW: 1 / 8,
-        frameH: 1 / 8,
-        red: 0.4,
-        green: 2.0,
-        blue: 1.6,
-        alpha: 1.0,
-      });
-      marker1.addChildTo(this.glLayer);
-      marker1.on("enterframe", function() {
-        this.x = player.x;
-        this.y = player.y;
-        this.rotation += 0.1;
-      });
-      var marker2 = this.glLayer.topEffectDrawer.get("effect");
-      marker2.spawn({
-        scaleX: 8,
-        scaleY: 8,
-        frameX: 7 / 8,
-        frameY: 0 / 8,
-        frameW: 1 / 8,
-        frameH: 1 / 8,
-        red: 0.4,
-        green: 2.0,
-        blue: 1.6,
-        alpha: 1.0,
-        rotation: 0.5,
-      });
-      marker2.addChildTo(this.glLayer);
-      marker2.on("enterframe", function() {
-        this.x = player.x;
-        this.y = player.y;
-        this.rotation += 0.1;
-      });
-      var marker3 = this.glLayer.effectDrawer.get("effect");
-      marker3.spawn({
-        scaleX: 80,
-        scaleY: 80,
-        frameX: 0 / 8,
-        frameY: 1 / 8,
-        frameW: 1 / 8,
-        frameH: 1 / 8,
-        red: 2.0,
-        green: 2.0,
-        blue: 2.0,
-        alpha: 0.3,
-      });
-      marker3.addChildTo(this.glLayer);
-      marker3.on("enterframe", function() {
-        this.x = player.x;
-        this.y = player.y;
+      glLayer.enemyDrawer.addObjType("enemy", {
+        className: "passion.Enemy",
+        texture: "enemy1.png",
+        count: 50,
       });
 
-      bulletml.dsl();
-      var ptn = new bulletml.Root({
-        top0: action([
-          repeat(Infinity, [
-            repeat(50, [
-              fire(bullet({ type: 9 }), direction(7, "sequence"), speed(3.0)),
-              fire(bullet({ type: 1 }), direction(90, "sequence"), speed(2.0)),
-              fire(bullet({ type: 9 }), direction(90, "sequence"), speed(3.0)),
-              fire(bullet({ type: 1 }), direction(90, "sequence"), speed(2.0)),
-              fire(bullet({ type: 9 }), direction(90, "sequence"), speed(3.0)),
-              wait(1),
-            ]),
-            wait(120),
-          ]),
-        ]),
-      });
+      passion.Background.setup(glLayer, "bg.png", 1069);
+      var player = this.player = passion.Player.setup(glLayer);
+      
+      passion.Danmaku.setup(this);
 
-      var glLayer = this.glLayer;
-      var bulletDrawer = this.glLayer.bulletDrawer;
+      var enemy = glLayer.enemyDrawer.get("enemy");
+      enemy.spawn({
+        scaleX: 32,
+        scaleY: 32,
+        x: 100,
+        y: 100,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1 / 4,
+        frameH: 1 / 4,
+        red: 2,
+        green: 2,
+        blue: 2,
+      });
+      enemy.addChildTo(glLayer);
+      enemy.startAttack("test");
+      this.enemies.push(enemy);
 
-      var runner = ptn.createRunner({
-        target: player,
-        createNewBullet: function(runner, spec) {
-          var b = bulletDrawer.get();
-          if (b) {
-            b.spawn(runner, {
-              type: spec.type,
-              scale: 32,
-            });
-            b.addChildTo(glLayer);
-          }
-        },
+      var enemy = glLayer.enemyDrawer.get("enemy");
+      enemy.spawn({
+        scaleX: 32,
+        scaleY: 32,
+        x: 160,
+        y: 100,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1 / 4,
+        frameH: 1 / 4,
+        red: 2,
+        green: 2,
+        blue: 2,
       });
-      player.on("enterframe", function() {
-        runner.x = this.x;
-        runner.y = this.y;
-        // runner.update();
+      enemy.addChildTo(glLayer);
+      enemy.startAttack("test");
+      this.enemies.push(enemy);
+
+      var enemy = glLayer.enemyDrawer.get("enemy");
+      enemy.spawn({
+        scaleX: 32,
+        scaleY: 32,
+        x: 220,
+        y: 100,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1 / 4,
+        frameH: 1 / 4,
+        red: 2,
+        green: 2,
+        blue: 2,
       });
+      enemy.addChildTo(glLayer);
+      enemy.startAttack("test");
+      this.enemies.push(enemy);
+    },
+
+    update: function(app) {
+      var es = this.enemies;
+      for (var i = 0; i < es.length; i++) {
+        es[i].flare("everyframe", {
+          player: this.player,
+          enemies: this.enemies,
+        });
+      }
     },
 
     drawBgTexture: function() {
       var bgTexture = phina.graphics.Canvas();
       bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-      bgTexture.clearColor("hsla(190, 100%, 95%, 0.1)");
+      bgTexture.clearColor("hsla(190, 100%, 95%, 0.05)");
       (150).times(function(i, j) {
         var y = (SCREEN_HEIGHT * 1.5) / j * i;
-        bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.2)";
+        bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.1)";
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,
           SCREEN_WIDTH * 0.1, y - 10,
@@ -1412,7 +1779,7 @@ phina.namespace(function() {
           SCREEN_WIDTH * 0.8, y - 50,
           SCREEN_WIDTH * 1.0, y - 50
         );
-        bgTexture.strokeStyle = "hsla(190, 100%, 65%, 0.2)";
+        bgTexture.strokeStyle = "hsla(190, 100%, 65%, 0.1)";
         y += 1;
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,
@@ -1424,7 +1791,7 @@ phina.namespace(function() {
           SCREEN_WIDTH * 0.8, y - 50,
           SCREEN_WIDTH * 1.0, y - 50
         );
-        bgTexture.strokeStyle = "hsla(190, 100%, 35%, 0.2)";
+        bgTexture.strokeStyle = "hsla(190, 100%, 35%, 0.1)";
         y += 1;
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,

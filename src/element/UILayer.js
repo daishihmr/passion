@@ -15,28 +15,30 @@ phina.namespace(function() {
             originX: 0,
             originY: 0,
             alpha: 0.0,
+            x: GAME_AREA_WIDTH * passion.GLLayer.padding,
+            y: GAME_AREA_HEIGHT * passion.GLLayer.padding,
           },
           scoreBg: {
             className: "passion.UIFrame",
             arguments: {
-              width: GAME_AREA_WIDTH * 0.96,
-              height: GAME_AREA_HEIGHT * 0.05,
+              width: SCREEN_WIDTH * 0.96,
+              height: SCREEN_HEIGHT * 0.05,
             },
-            x: GAME_AREA_WIDTH * 0.01,
-            y: GAME_AREA_HEIGHT * 0.00,
+            x: SCREEN_WIDTH * 0.00,
+            y: SCREEN_HEIGHT * 0.00,
             originX: 0,
             originY: 0,
             children: {
               scoreLabel: {
                 className: "phina.display.Label",
                 arguments: {
-                  text: "1,234,567,890",
+                  text: "9,991,234,567,890",
                   align: "right",
                   baseline: "middle",
-                  fontSize: GAME_AREA_HEIGHT * 0.04,
+                  fontSize: SCREEN_HEIGHT * 0.035,
                 },
-                x: GAME_AREA_WIDTH * 0.55,
-                y: GAME_AREA_HEIGHT * 0.04,
+                x: SCREEN_WIDTH * 0.96,
+                y: SCREEN_HEIGHT * 0.038,
               },
               hi: {
                 className: "phina.display.Label",
@@ -44,25 +46,25 @@ phina.namespace(function() {
                   text: "HI",
                   align: "left",
                   baseline: "middle",
-                  fontSize: GAME_AREA_HEIGHT * 0.03,
+                  fontSize: SCREEN_HEIGHT * 0.025,
                 },
-                x: GAME_AREA_WIDTH * 0.60,
-                y: GAME_AREA_HEIGHT * 0.042,
+                x: SCREEN_WIDTH * 0.04,
+                y: SCREEN_HEIGHT * 0.035,
               },
               highscoreLabel: {
                 className: "phina.display.Label",
                 arguments: {
-                  text: "1,234,567,890",
+                  text: "9,991,234,567,890",
                   align: "right",
                   baseline: "middle",
-                  fontSize: GAME_AREA_HEIGHT * 0.03,
+                  fontSize: SCREEN_HEIGHT * 0.025,
                 },
-                x: GAME_AREA_WIDTH * 0.96,
-                y: GAME_AREA_HEIGHT * 0.042,
+                x: SCREEN_WIDTH * 0.44,
+                y: SCREEN_HEIGHT * 0.035,
               },
             },
           },
-          button: {
+          bombButton: {
             className: "passion.CircleButton",
             arguments: {
               text: "BOMB",
@@ -71,6 +73,53 @@ phina.namespace(function() {
             },
             x: GAME_AREA_WIDTH * 0.10,
             y: GAME_AREA_HEIGHT * 0.93,
+          },
+          messageWindow: {
+            className: "passion.UIFrame",
+            arguments: {
+              width: SCREEN_WIDTH * 0.96,
+              height: SCREEN_HEIGHT * 0.14,
+            },
+            x: SCREEN_WIDTH * 0.0,
+            y: SCREEN_HEIGHT * 0.84,
+            originX: 0,
+            originY: 0,
+            children: {
+              nameLabel: {
+                className: "passion.UIHead2Label",
+                arguments: {
+                  text: "オペ子",
+                  width: SCREEN_WIDTH * 0.30,
+                  height: SCREEN_HEIGHT * 0.03,
+                  fontSize: 18,
+                  fontFamily: "main, message",
+                },
+                x: SCREEN_WIDTH * 0.20,
+                y: SCREEN_HEIGHT * 0.034,
+              },
+              mesasgeLabel: {
+                className: "phina.display.Label",
+                arguments: {
+                  text: "WARNING!!\n今までにない強大な力が近づいてきます！\n気をつけてください！！",
+                  align: "left",
+                  baseline: "top",
+                  fontSize: 16,
+                  lineHeight: 1.1,
+                  fontFamily: "main, message",
+                },
+                x: SCREEN_WIDTH * 0.05,
+                y: SCREEN_HEIGHT * 0.076,
+              },
+            },
+          },
+          test: {
+            className: "phina.display.Sprite",
+            arguments: "test2.png",
+            x: SCREEN_WIDTH * 1.0,
+            y: SCREEN_HEIGHT * 0.84,
+            originX: 1,
+            originY: 1,
+            visible: false,
           },
         },
       });
@@ -82,19 +131,19 @@ phina.namespace(function() {
           self.scoreBg.highscoreLabel.text = passion.Utils.sep(this.highScore);
         }
       });
-      gameManager.on("damage", function(e) {
-      });
+      gameManager.on("damage", function(e) {});
     },
 
     damageTexture: function() {
       var c = phina.graphics.Canvas();
-      c.setSize(GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+      var p = passion.GLLayer.padding;
+      c.setSize(GAME_AREA_WIDTH * (1 - p * 2), GAME_AREA_HEIGHT * (1 - p * 2));
       c.clearColor("transparent");
-      var g = c.context.createRadialGradient(GAME_AREA_WIDTH / 2, GAME_AREA_HEIGHT / 2, 0, GAME_AREA_WIDTH / 2, GAME_AREA_HEIGHT / 2, GAME_AREA_HEIGHT / 2)
+      var g = c.context.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, c.height / 2)
       g.addColorStop(0, "rgba(255, 0, 0, 0.0)");
       g.addColorStop(1, "rgba(255, 0, 0, 1.0)");
       c.fillStyle = g;
-      c.fillRect(0, 0, GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+      c.fillRect(0, 0, c.width, c.height);
       return c;
     },
 

@@ -1,5 +1,5 @@
 phina.namespace(function() {
-  
+
   phina.define("passion.GLLayer", {
     superClass: "phina.display.Layer",
 
@@ -97,20 +97,28 @@ phina.namespace(function() {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       this.bgDrawer.render(ou);
-      this.enemyDrawer.render(ou);
       this.effectDrawer.render(ou);
       this.playerDrawer.render(ou);
+      this.enemyDrawer.render(ou);
       this.bulletDrawer.render(ou);
       this.topEffectDrawer.render(ou);
 
       gl.flush();
 
-      canvas.context.drawImage(image, 0, 0, cw, ch, 0, 0, this.width, this.height);
+      var p = passion.GLLayer.padding;
+      canvas.context.drawImage(image,
+        0, 0, cw, ch,
+        this.width * p, this.height * p, this.width * (1 - p * 2), this.height * (1 - p * 2)
+      );
     },
 
     _static: {
-      quality: 0.75,
-      // quality: 1.0,
+      // padding: 0.1,
+      // padding: 0.05,
+      padding: 0.01,
+      // quality: 0.5,
+      // quality: 0.75,
+      quality: 1.0,
     },
   });
 

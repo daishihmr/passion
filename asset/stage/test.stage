@@ -1,0 +1,15 @@
+{
+  "name": "",
+  "start": "",
+  "end": "",
+  "timeline": [
+    {
+      "type": "wait",
+      "arguments": [120]
+    },
+    {
+      "type": "launch",
+      "arguments": []
+    }
+  ]
+}

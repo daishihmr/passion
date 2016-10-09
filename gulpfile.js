@@ -5,6 +5,7 @@ var watch = require("gulp-watch");
 var uglify = require("gulp-uglify");
 var rename = require("gulp-rename");
 var fs = require("node-fs-extra");
+var pug = require("gulp-pug");
 require("high");
 
 var sourceFiles = function(folder) {
@@ -52,5 +53,15 @@ gulp.task("lib", function() {
 });
 
 gulp.task("watch", function() {
-  gulp.watch(sourceFiles("./src"), ["concat"]);
+  var srcs = sourceFiles("./src").concat(["./bulletml-src/*"]);
+  gulp.watch(srcs, ["concat", "pug"]);
+});
+
+gulp.task("pug", function() {
+  gulp.src("./bulletml-src/*.pug")
+    .pipe(pug())
+    .pipe(rename({
+      extname: ".bulletml"
+    }))
+    .pipe(gulp.dest("./asset/bulletml"));
 });

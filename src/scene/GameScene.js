@@ -2,13 +2,17 @@ phina.namespace(function() {
 
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
-    
+
     gameManager: null,
+    enemies: null,
+    bullets: null,
 
     init: function() {
       this.superInit();
-      
+
       this.gameManager = passion.GameManager();
+      this.enemies = [];
+      this.bullets = [];
 
       this.fromJSON({
         children: {
@@ -28,203 +32,102 @@ phina.namespace(function() {
         },
       });
 
-      this.glLayer.bgDrawer.addObjType("bg", {
-        className: "passion.Background",
-        texture: "test.png",
-        count: 2,
-      });
-      var bg = this.glLayer.bgDrawer.get("bg");
-      bg.spawn();
-      bg.x = GAME_AREA_WIDTH / 2;
-      bg.y = GAME_AREA_HEIGHT / 2;
-      bg.addChildTo(this.glLayer);
-      var bg2 = this.glLayer.bgDrawer.get("bg");
-      bg2.spawn();
-      bg2.x = GAME_AREA_WIDTH / 2;
-      bg2.y = GAME_AREA_HEIGHT / 2 - 640;
-      bg2.addChildTo(this.glLayer);
+      var self = this;
+      var glLayer = this.glLayer;
+      var bulletDrawer = glLayer.bulletDrawer;
 
-      this.glLayer.effectDrawer.addObjType("effect", {
+      glLayer.effectDrawer.addObjType("effect", {
         texture: "texture0.png",
         additiveBlending: true,
-        count: 500,
+        count: 200,
       });
-      this.on("enterframe", function(e) {
-        if (e.app.ticker.frame % 2 !== 0) return;
-        var hex = this.glLayer.effectDrawer.get("effect");
-        if (hex) {
-          hex.onenterframe = function() {
-            this.y += 2;
-            this.alpha *= 0.80;
-            if (this.alpha < 0.01) {
-              this.remove();
-            }
-          };
-          hex.spawn({
-            scaleX: 18,
-            scaleY: 18,
-            frameX: 7 / 8,
-            frameY: 0 / 8,
-            frameW: 1 / 8,
-            frameH: 1 / 8,
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 1.0,
-          });
-          hex.addChildTo(this.glLayer);
-          hex.x = player.x - 8;
-          hex.y = player.y + 15;
-        }
-
-        var hex = this.glLayer.effectDrawer.get("effect");
-        if (hex) {
-          hex.onenterframe = function() {
-            this.y += 2;
-            this.alpha *= 0.80;
-            if (this.alpha < 0.01) {
-              this.remove();
-            }
-          };
-          hex.spawn({
-            scaleX: 18,
-            scaleY: 18,
-            frameX: 7 / 8,
-            frameY: 0 / 8,
-            frameW: 1 / 8,
-            frameH: 1 / 8,
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 1.0,
-          });
-          hex.addChildTo(this.glLayer);
-          hex.x = player.x + 8;
-          hex.y = player.y + 15;
-        }
-      });
-
-      this.glLayer.playerDrawer.addObjType("player", {
-        className: "passion.Player",
-        texture: "texture0.png",
-      });
-
-      var player = this.glLayer.playerDrawer.get("player");
-      player.spawn();
-      player.addChildTo(this.glLayer);
-      player.x = 100;
-      player.y = 100;
-
-      this.glLayer.topEffectDrawer.addObjType("effect", {
+      glLayer.topEffectDrawer.addObjType("effect", {
         texture: "texture0.png",
         count: 2,
-        // additiveBlending: true,
       });
-      var marker1 = this.glLayer.topEffectDrawer.get("effect");
-      marker1.spawn({
-        scaleX: 14,
-        scaleY: 14,
-        frameX: 7 / 8,
-        frameY: 0 / 8,
-        frameW: 1 / 8,
-        frameH: 1 / 8,
-        red: 0.4,
-        green: 2.0,
-        blue: 1.6,
-        alpha: 1.0,
-      });
-      marker1.addChildTo(this.glLayer);
-      marker1.on("enterframe", function() {
-        this.x = player.x;
-        this.y = player.y;
-        this.rotation += 0.1;
-      });
-      var marker2 = this.glLayer.topEffectDrawer.get("effect");
-      marker2.spawn({
-        scaleX: 8,
-        scaleY: 8,
-        frameX: 7 / 8,
-        frameY: 0 / 8,
-        frameW: 1 / 8,
-        frameH: 1 / 8,
-        red: 0.4,
-        green: 2.0,
-        blue: 1.6,
-        alpha: 1.0,
-        rotation: 0.5,
-      });
-      marker2.addChildTo(this.glLayer);
-      marker2.on("enterframe", function() {
-        this.x = player.x;
-        this.y = player.y;
-        this.rotation += 0.1;
-      });
-      var marker3 = this.glLayer.effectDrawer.get("effect");
-      marker3.spawn({
-        scaleX: 80,
-        scaleY: 80,
-        frameX: 0 / 8,
-        frameY: 1 / 8,
-        frameW: 1 / 8,
-        frameH: 1 / 8,
-        red: 2.0,
-        green: 2.0,
-        blue: 2.0,
-        alpha: 0.3,
-      });
-      marker3.addChildTo(this.glLayer);
-      marker3.on("enterframe", function() {
-        this.x = player.x;
-        this.y = player.y;
+      glLayer.enemyDrawer.addObjType("enemy", {
+        className: "passion.Enemy",
+        texture: "enemy1.png",
+        count: 50,
       });
 
-      bulletml.dsl();
-      var ptn = new bulletml.Root({
-        top0: action([
-          repeat(Infinity, [
-            repeat(50, [
-              fire(bullet({ type: 9 }), direction(7, "sequence"), speed(3.0)),
-              fire(bullet({ type: 1 }), direction(90, "sequence"), speed(2.0)),
-              fire(bullet({ type: 9 }), direction(90, "sequence"), speed(3.0)),
-              fire(bullet({ type: 1 }), direction(90, "sequence"), speed(2.0)),
-              fire(bullet({ type: 9 }), direction(90, "sequence"), speed(3.0)),
-              wait(1),
-            ]),
-            wait(120),
-          ]),
-        ]),
-      });
+      passion.Background.setup(glLayer, "bg.png", 1069);
+      var player = this.player = passion.Player.setup(glLayer);
+      
+      passion.Danmaku.setup(this);
 
-      var glLayer = this.glLayer;
-      var bulletDrawer = this.glLayer.bulletDrawer;
+      var enemy = glLayer.enemyDrawer.get("enemy");
+      enemy.spawn({
+        scaleX: 32,
+        scaleY: 32,
+        x: 100,
+        y: 100,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1 / 4,
+        frameH: 1 / 4,
+        red: 2,
+        green: 2,
+        blue: 2,
+      });
+      enemy.addChildTo(glLayer);
+      enemy.startAttack("test");
+      this.enemies.push(enemy);
 
-      var runner = ptn.createRunner({
-        target: player,
-        createNewBullet: function(runner, spec) {
-          var b = bulletDrawer.get();
-          if (b) {
-            b.spawn(runner, {
-              type: spec.type,
-              scale: 32,
-            });
-            b.addChildTo(glLayer);
-          }
-        },
+      var enemy = glLayer.enemyDrawer.get("enemy");
+      enemy.spawn({
+        scaleX: 32,
+        scaleY: 32,
+        x: 160,
+        y: 100,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1 / 4,
+        frameH: 1 / 4,
+        red: 2,
+        green: 2,
+        blue: 2,
       });
-      player.on("enterframe", function() {
-        runner.x = this.x;
-        runner.y = this.y;
-        // runner.update();
+      enemy.addChildTo(glLayer);
+      enemy.startAttack("test");
+      this.enemies.push(enemy);
+
+      var enemy = glLayer.enemyDrawer.get("enemy");
+      enemy.spawn({
+        scaleX: 32,
+        scaleY: 32,
+        x: 220,
+        y: 100,
+        frameX: 0,
+        frameY: 0,
+        frameW: 1 / 4,
+        frameH: 1 / 4,
+        red: 2,
+        green: 2,
+        blue: 2,
       });
+      enemy.addChildTo(glLayer);
+      enemy.startAttack("test");
+      this.enemies.push(enemy);
+    },
+
+    update: function(app) {
+      var es = this.enemies;
+      for (var i = 0; i < es.length; i++) {
+        es[i].flare("everyframe", {
+          player: this.player,
+          enemies: this.enemies,
+        });
+      }
     },
 
     drawBgTexture: function() {
       var bgTexture = phina.graphics.Canvas();
       bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-      bgTexture.clearColor("hsla(190, 100%, 95%, 0.1)");
+      bgTexture.clearColor("hsla(190, 100%, 95%, 0.05)");
       (150).times(function(i, j) {
         var y = (SCREEN_HEIGHT * 1.5) / j * i;
-        bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.2)";
+        bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.1)";
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,
           SCREEN_WIDTH * 0.1, y - 10,
@@ -235,7 +138,7 @@ phina.namespace(function() {
           SCREEN_WIDTH * 0.8, y - 50,
           SCREEN_WIDTH * 1.0, y - 50
         );
-        bgTexture.strokeStyle = "hsla(190, 100%, 65%, 0.2)";
+        bgTexture.strokeStyle = "hsla(190, 100%, 65%, 0.1)";
         y += 1;
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,
@@ -247,7 +150,7 @@ phina.namespace(function() {
           SCREEN_WIDTH * 0.8, y - 50,
           SCREEN_WIDTH * 1.0, y - 50
         );
-        bgTexture.strokeStyle = "hsla(190, 100%, 35%, 0.2)";
+        bgTexture.strokeStyle = "hsla(190, 100%, 35%, 0.1)";
         y += 1;
         bgTexture.strokeLines(
           SCREEN_WIDTH * 0.0, y - 10,

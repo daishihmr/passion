@@ -2,7 +2,103 @@ phina.namespace(function() {
 
   phina.define("passion.Player", {
     superClass: "passion.Sprite",
-    
+
+    _static: {
+      setup: function(glLayer) {
+        glLayer.playerDrawer.addObjType("player", {
+          className: "passion.Player",
+          texture: "texture0.png",
+        });
+
+        var player = glLayer.playerDrawer.get("player");
+        player.spawn();
+        player.addChildTo(glLayer);
+
+        player.on("enterframe", function(e) {
+          if (e.app.ticker.frame % 2 !== 0) return;
+
+          var hex1 = glLayer.effectDrawer.get("effect");
+          var hex2 = glLayer.effectDrawer.get("effect");
+          var options = {
+            x: player.x - 8,
+            y: player.y + 15,
+            scaleX: 18,
+            scaleY: 18,
+            frameX: 7 / 8,
+            frameY: 0 / 8,
+            frameW: 1 / 8,
+            frameH: 1 / 8,
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 1.0,
+          };
+          var oefl = function() {
+            this.y += 2;
+            this.alpha *= 0.80;
+            if (this.alpha < 0.01) {
+              this.remove();
+            }
+          };
+
+          if (hex1) {
+            options.x = player.x - 8;
+            hex1.spawn(options);
+            hex1.onenterframe = oefl;
+            hex1.addChildTo(glLayer);
+          }
+
+          if (hex2) {
+            options.x = player.x + 8;
+            hex2.spawn(options);
+            hex2.onenterframe = oefl;
+            hex2.addChildTo(glLayer);
+          }
+        });
+
+        var aura = glLayer.effectDrawer.get("effect");
+        aura.spawn({
+          scaleX: 80,
+          scaleY: 80,
+          frameX: 0 / 8,
+          frameY: 1 / 8,
+          frameW: 1 / 8,
+          frameH: 1 / 8,
+          red: 2.0,
+          green: 2.0,
+          blue: 2.0,
+          alpha: 0.2,
+        });
+        aura.addChildTo(glLayer);
+        aura.on("enterframe", function() {
+          this.x = player.x;
+          this.y = player.y;
+        });
+
+        var centerMarker = glLayer.topEffectDrawer.get("effect");
+        centerMarker.spawn({
+          scaleX: 14,
+          scaleY: 14,
+          frameX: 7 / 8,
+          frameY: 0 / 8,
+          frameW: 1 / 8,
+          frameH: 1 / 8,
+          red: 0.4,
+          green: 2.0,
+          blue: 1.6,
+          alpha: 1.0,
+        });
+        centerMarker.addChildTo(glLayer);
+        centerMarker.on("enterframe", function() {
+          this.x = player.x;
+          this.y = player.y;
+          this.rotation += 0.1;
+        });
+
+        return player;
+      },
+    },
+
     _roll: 0,
 
     init: function(id, instanceData, instanceStride) {
@@ -14,8 +110,8 @@ phina.namespace(function() {
 
     spawn: function() {
       passion.Sprite.prototype.spawn.call(this, {
-        scaleX: 60,
-        scaleY: 60,
+        scaleX: 75,
+        scaleY: 75,
         frameX: 3 / 8,
         frameY: 0 / 8,
         frameW: 1 / 8,
@@ -24,6 +120,8 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
+      this.x = GAME_AREA_WIDTH * 0.5;
+      this.y = GAME_AREA_HEIGHT * 0.9;
       return this;
     },
 
@@ -38,18 +136,20 @@ phina.namespace(function() {
           this.roll -= 0.2;
         } else if (0 < dp.x) {
           this.roll += 0.2;
-        } else {
-          this.roll *= 0.9;
-          if (-0.1 < this.roll && this.roll < 0.1) {
-            this.roll = 0;
-          }
         }
 
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
         this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
       }
+
+      if (dp.x == 0) {
+        this.roll *= 0.9;
+        if (-0.01 < this.roll && this.roll < 0.01) {
+          this.roll = 0;
+        }
+      }
     },
-    
+
     _accessor: {
       roll: {
         get: function() {
@@ -58,7 +158,6 @@ phina.namespace(function() {
         set: function(v) {
           this._roll = Math.clamp(v, -3, 3);
           var r = ~~this._roll;
-          if (-3 < r && r < 0) r += 1;
           this.frameX = (r + 3) / 8;
         },
       },
