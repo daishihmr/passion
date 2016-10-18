@@ -11,7 +11,6 @@ phina.namespace(function() {
                 message: "./asset/font/YasashisaGothic.ttf",
               },
               image: {
-                "test.png": "./asset/image/test.png",
                 "test2.png": "./asset/image/test2.png",
                 "bg.png": "./asset/image/bg.png",
                 "bullets.png": "./asset/image/bullets.png",

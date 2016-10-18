@@ -16,7 +16,9 @@ phina.main(function() {
   phina.display.Label.defaults.fill = "white";
 
   var app = passion.Application();
-  app.enableStats();
+  if (location.hostname == "localhost") {
+    app.enableStats();
+  }
   app.run();
 
   app.replaceScene(phina.game.ManagerScene({

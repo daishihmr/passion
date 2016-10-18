@@ -12,7 +12,6 @@ phina.namespace(function() {
 
         var player = glLayer.playerDrawer.get("player");
         player.spawn();
-        player.addChildTo(glLayer);
 
         player.on("enterframe", function(e) {
           if (e.app.ticker.frame % 2 !== 0) return;
@@ -100,6 +99,8 @@ phina.namespace(function() {
     },
 
     _roll: 0,
+    heat: 0,
+    heatByShot: 0,
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
@@ -148,6 +149,13 @@ phina.namespace(function() {
           this.roll = 0;
         }
       }
+      
+      if (p.getPointing() && this.heat <= 0) {
+        this.flare("fireShot");
+        this.heat = this.heatByShot;
+      }
+
+      this.heat -= 1;
     },
 
     _accessor: {

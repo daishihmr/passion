@@ -4,15 +4,21 @@ phina.namespace(function() {
     superClass: "phina.display.DisplayScene",
 
     gameManager: null,
+
+    shots: null,
     enemies: null,
     bullets: null,
 
     init: function() {
       this.superInit();
 
-      this.gameManager = passion.GameManager();
-      this.enemies = [];
-      this.bullets = [];
+      var self = this;
+
+      var gameManager = this.gameManager = passion.GameManager();
+
+      var shots = this.shots = [];
+      var enemies = this.enemies = [];
+      var bullets = this.bullets = [];
 
       this.fromJSON({
         children: {
@@ -32,9 +38,7 @@ phina.namespace(function() {
         },
       });
 
-      var self = this;
       var glLayer = this.glLayer;
-      var bulletDrawer = glLayer.bulletDrawer;
 
       glLayer.effectDrawer.addObjType("effect", {
         texture: "texture0.png",
@@ -45,70 +49,47 @@ phina.namespace(function() {
         texture: "texture0.png",
         count: 2,
       });
+
+      // 背景
+      passion.Background.setup(glLayer, "bg.png", 1069);
+
+      // 自機
+      var player = this.player = passion.Player.setup(glLayer).addChildTo(glLayer);
+
+      // ショット
+      var shotClassName = "passion.NormalShot";
+      glLayer.shotDrawer.addObjType("shot", {
+        className: shotClassName,
+        texture: "bullets.png",
+        count: 50,
+      });
+      var ShotClass = phina.using(shotClassName);
+      player.heatByShot = ShotClass.heatByShot;
+      player.on("fireShot", function(e) {
+        for (var i = 0; i < ShotClass.fireCount; i++) {
+          var s = glLayer.shotDrawer.get("shot");
+          if (s) {
+            s.spawn(this, i).addChildTo(glLayer);
+            shots.push(s);
+          }
+        }
+      });
+
+      // 敵
       glLayer.enemyDrawer.addObjType("enemy", {
         className: "passion.Enemy",
         texture: "enemy1.png",
         count: 50,
       });
 
-      passion.Background.setup(glLayer, "bg.png", 1069);
-      var player = this.player = passion.Player.setup(glLayer);
-      
+      // 弾
       passion.Danmaku.setup(this);
-
-      var enemy = glLayer.enemyDrawer.get("enemy");
-      enemy.spawn({
-        scaleX: 32,
-        scaleY: 32,
-        x: 100,
-        y: 100,
-        frameX: 0,
-        frameY: 0,
-        frameW: 1 / 4,
-        frameH: 1 / 4,
-        red: 2,
-        green: 2,
-        blue: 2,
+      
+      this.on("enterframe", function(e) {
+        if (e.app.keyboard.getKeyDown("s")) {
+         e.app.stop(); 
+        }
       });
-      enemy.addChildTo(glLayer);
-      enemy.startAttack("test");
-      this.enemies.push(enemy);
-
-      var enemy = glLayer.enemyDrawer.get("enemy");
-      enemy.spawn({
-        scaleX: 32,
-        scaleY: 32,
-        x: 160,
-        y: 100,
-        frameX: 0,
-        frameY: 0,
-        frameW: 1 / 4,
-        frameH: 1 / 4,
-        red: 2,
-        green: 2,
-        blue: 2,
-      });
-      enemy.addChildTo(glLayer);
-      enemy.startAttack("test");
-      this.enemies.push(enemy);
-
-      var enemy = glLayer.enemyDrawer.get("enemy");
-      enemy.spawn({
-        scaleX: 32,
-        scaleY: 32,
-        x: 220,
-        y: 100,
-        frameX: 0,
-        frameY: 0,
-        frameW: 1 / 4,
-        frameH: 1 / 4,
-        red: 2,
-        green: 2,
-        blue: 2,
-      });
-      enemy.addChildTo(glLayer);
-      enemy.startAttack("test");
-      this.enemies.push(enemy);
     },
 
     update: function(app) {

@@ -25,7 +25,7 @@ phina.namespace(function() {
       for (var i = 0; i < this.genPerFrame; i++) {
         var p = this.drawer.get(this.objName);
         if (p) {
-          p.spawn({}.$extend(this.spawnOptions(), {
+          p.spawn({}.$extend(this.spawnOptions, {
             x: this.x,
             y: this.y,
           }));
@@ -35,6 +35,19 @@ phina.namespace(function() {
         }
       }
     },
+  });
+
+  phina.define("passion.Particle", {
+    superClass: "passion.Sprite",
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.on("removed", function() {
+        this.clear("enterframe");
+        this.tweener.clear();
+      });
+    },
 
   });
+
 });
