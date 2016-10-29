@@ -1,0 +1,1 @@
+<bulletml><action label="top"><wait>60</wait><repeat><times>Infinity</times><action><wait>20</wait><fire><bullet option="{&quot;type&quot;:1}"></bullet><direction>0</direction><speed>3</speed></fire></action></repeat></action></bulletml>

@@ -29,7 +29,7 @@ var sourceFiles = function(folder) {
   return srcs;
 };
 
-gulp.task("default", ["lib", "concat", "uglify"]);
+gulp.task("default", ["pug", "lib", "concat", "uglify"]);
 
 gulp.task("concat", function() {
   gulp.src(sourceFiles("./src"))
@@ -61,7 +61,7 @@ gulp.task("pug", function() {
   gulp.src("./bulletml-src/*.pug")
     .pipe(pug())
     .pipe(rename({
-      extname: ".bulletml"
+      extname: ".xml"
     }))
     .pipe(gulp.dest("./asset/bulletml"));
 });

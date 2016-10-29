@@ -72,7 +72,7 @@ phina.namespace(function() {
               radius: GAME_AREA_WIDTH * 0.09,
             },
             x: GAME_AREA_WIDTH * 0.10,
-            y: GAME_AREA_HEIGHT * 0.93,
+            y: GAME_AREA_HEIGHT * 1.10,
           },
           messageWindow: {
             className: "passion.UIFrame",
@@ -84,6 +84,7 @@ phina.namespace(function() {
             y: SCREEN_HEIGHT * 0.84,
             originX: 0,
             originY: 0,
+            visible: false,
             children: {
               nameLabel: {
                 className: "passion.UIHead2Label",

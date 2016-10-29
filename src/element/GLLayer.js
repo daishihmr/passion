@@ -100,10 +100,10 @@ phina.namespace(function() {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       this.bgDrawer.render(ou);
-      this.shotDrawer.render(ou);
       this.effectDrawer.render(ou);
-      this.playerDrawer.render(ou);
       this.enemyDrawer.render(ou);
+      this.shotDrawer.render(ou);
+      this.playerDrawer.render(ou);
       this.bulletDrawer.render(ou);
       this.topEffectDrawer.render(ou);
 
@@ -121,8 +121,8 @@ phina.namespace(function() {
       // padding: 0.05,
       padding: 0.01,
       // quality: 0.5,
-      // quality: 0.75,
-      quality: 1.0,
+      quality: 0.75,
+      // quality: 1.0,
     },
   });
 

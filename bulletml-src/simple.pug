@@ -1,6 +1,11 @@
 bulletml
   action(label='top')
-    fire
-      bullet(option='{"type":1}')
-      direction 0
-      speed 3
+    wait 60
+    repeat
+      times Infinity
+      action
+        wait 20
+        fire
+          bullet(option='{"type":1}')
+          direction 0
+          speed 3

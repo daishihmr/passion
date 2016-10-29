@@ -1,5 +1,7 @@
 phina.namespace(function() {
   
+  var SPEED = 20;
+  
   phina.define("passion.Shot", {
     superClass: "passion.Sprite",
     
@@ -50,7 +52,7 @@ phina.namespace(function() {
     },
     
     controll: function(app) {
-      this.y -= 16;
+      this.y -= SPEED;
       if (this.y < GAME_AREA_HEIGHT * -0.1) {
         this.remove();
       }
@@ -71,7 +73,7 @@ phina.namespace(function() {
     
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
-        x: player.x + (index - 1) * 10,
+        x: player.x + (index - 1) * 20,
         y: player.y,
         rotation: -Math.PI * 0.5 + (index - 1) * 0.2,
         scaleX: 48,
@@ -85,12 +87,15 @@ phina.namespace(function() {
         blue: 1.0,
         alpha: 0.8,
       });
+      
+      this.dx = Math.cos(this.rotation) * SPEED;
+      this.dy = Math.sin(this.rotation) * SPEED;
       return this;
     },
     
     controll: function(app) {
-      this.x += Math.cos(this.rotation) * 16;
-      this.y += Math.sin(this.rotation) * 16;
+      this.x += this.dx;
+      this.y += this.dy;
       if (this.y < GAME_AREA_HEIGHT * -0.1 || this.x < GAME_AREA_WIDTH * -0.1 || GAME_AREA_WIDTH * 1.1 < this.x) {
         this.remove();
       }

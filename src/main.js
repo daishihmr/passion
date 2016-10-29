@@ -32,6 +32,13 @@ phina.main(function() {
       },
 
       {
+        className: "passion.StageAssetLoadScene",
+        arguments: {
+          stage: "testStage",
+        },
+      },
+
+      {
         className: "passion.GameScene",
       },
 

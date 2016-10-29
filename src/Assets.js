@@ -12,10 +12,10 @@ phina.namespace(function() {
               },
               image: {
                 "test2.png": "./asset/image/test2.png",
-                "bg.png": "./asset/image/bg.png",
+                // "bg.png": "./asset/image/bg.png",
                 "bullets.png": "./asset/image/bullets.png",
                 "texture0.png": "./asset/image/texture0.png",
-                "enemy1.png": "./asset/image/enemy1.png",
+                // "enemy1.png": "./asset/image/enemy1.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",
@@ -25,9 +25,13 @@ phina.namespace(function() {
                 "bullets.fs": "./asset/shader/bullets.fs",
                 "sprites.fs": "./asset/shader/sprites.fs",
               },
-              xml: {
-                "simple": "./asset/bulletml/simple.bulletml",
-                "test": "./asset/bulletml/test.bulletml",
+              // xml: {
+              //   "simple": "./asset/bulletml/simple.xml",
+              //   "test": "./asset/bulletml/test.xml",
+              // },
+              sound: {
+                "home": "./asset/sound/nc136160.mp3",
+                // "bgm1": "./asset/sound/nc140053.mp3",
               },
             };
           default:

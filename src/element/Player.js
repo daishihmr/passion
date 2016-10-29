@@ -87,7 +87,7 @@ phina.namespace(function() {
           blue: 1.6,
           alpha: 1.0,
         });
-        centerMarker.addChildTo(glLayer);
+        centerMarker.addChildTo(player);
         centerMarker.on("enterframe", function() {
           this.x = player.x;
           this.y = player.y;
@@ -150,7 +150,7 @@ phina.namespace(function() {
         }
       }
       
-      if (p.getPointing() && this.heat <= 0) {
+      if (app.pointers.length > 0 && this.heat <= 0) {
         this.flare("fireShot");
         this.heat = this.heatByShot;
       }

@@ -1,0 +1,62 @@
+{
+  "name": "テストステージ",
+  "enemies": [
+    "s1"
+  ],
+  "bgm": "nc140053",
+  "bg": "bg",
+  "timeline": [
+    {
+      "type": "startBgm",
+      "arguments": { "bgm": "bgm1" }
+    },
+    {
+      "type": "wait",
+      "arguments": { "time": 40 }
+    },
+    {
+      "type": "enemy",
+      "arguments": {
+        "name": "s1",
+        "x": 0.1,
+        "y": -0.1,
+        "moveRunner": "heli1",
+        "bulletRunner": "test",
+        "wait": 30
+      }
+    },
+    {
+      "type": "enemy",
+      "arguments": {
+        "name": "s1",
+        "x": 0.3,
+        "y": -0.1,
+        "moveRunner": "heli1",
+        "bulletRunner": "test",
+        "wait": 20
+      }
+    },
+    {
+      "type": "enemy",
+      "arguments": {
+        "name": "s1",
+        "x": 0.5,
+        "y": -0.1,
+        "moveRunner": "heli1",
+        "bulletRunner": "test",
+        "wait": 10
+      }
+    },
+    {
+      "type": "enemy",
+      "arguments": {
+        "name": "s1",
+        "x": 0.7,
+        "y": -0.1,
+        "moveRunner": "heli1",
+        "bulletRunner": "test",
+        "wait": 0
+      }
+    }
+  ]
+}
