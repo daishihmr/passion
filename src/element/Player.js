@@ -140,7 +140,7 @@ phina.namespace(function() {
         }
 
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
-        this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
+        this.y = Math.clamp(this.y, 40, GAME_AREA_HEIGHT - 5);
       }
 
       if (dp.x == 0) {

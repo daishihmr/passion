@@ -7,6 +7,7 @@ phina.namespace(function() {
     
     bx: 0,
     by: 0,
+    power: 0,
     
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
@@ -18,6 +19,10 @@ phina.namespace(function() {
     },
     
     controll: function(app) {},
+    
+    onhit: function(e) {
+      this.remove();
+    },
   });
 
   phina.define("passion.NormalShot", {
@@ -30,11 +35,12 @@ phina.namespace(function() {
     
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
     },
     
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
-        x: player.x + (index - 1) * 10,
+        x: player.x + [-1, 1, 0][index] * 10,
         y: player.y - 30,
         rotation: -Math.PI * 0.5,
         scaleX: 48,
@@ -69,13 +75,14 @@ phina.namespace(function() {
     
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
     },
     
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
-        x: player.x + (index - 1) * 20,
+        x: player.x + [-1, 1, 0][index] * 20,
         y: player.y,
-        rotation: -Math.PI * 0.5 + (index - 1) * 0.2,
+        rotation: -Math.PI * 0.5 + [-1, 1, 0][index] * 0.2,
         scaleX: 48,
         scaleY: 48,
         frameX: 1 / 8,

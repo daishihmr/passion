@@ -128,8 +128,16 @@ phina.namespace(function() {
         if (task.arguments.bulletRunner) {
           xmls[task.arguments.bulletRunner] = "./asset/bulletml/" + task.arguments.bulletRunner + ".xml";
         }
+        if (task.arguments.enemy) {
+          if (task.arguments.enemy.moveRunner) {
+            xmls[task.arguments.enemy.moveRunner] = "./asset/bulletml/" + task.arguments.enemy.moveRunner + ".xml";
+          }
+          if (task.arguments.enemy.bulletRunner) {
+            xmls[task.arguments.enemy.bulletRunner] = "./asset/bulletml/" + task.arguments.enemy.bulletRunner + ".xml";
+          }
+        }
       });
-
+      
       var loader = phina.asset.AssetLoader();
       loader.load({
         xml: xmls,

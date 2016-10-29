@@ -14,7 +14,7 @@ phina.namespace(function() {
     power: 0,
 
     _active: false,
-    
+
     radius: 20,
 
     init: function(id, instanceData, instanceStride) {
@@ -90,9 +90,20 @@ phina.namespace(function() {
       this.age += 1;
     },
 
-    hitPlayer: function(player) {
-      // TODO
-      this.remove();
+    isHit: function(target) {
+      if (!this.visible || !target.visible) return false;
+      return (this.x - target.x) * (this.x - target.x) + (this.y - target.y) * (this.y - target.y) < 5 * 5;
+    },
+
+    _accessor: {
+      visible: {
+        get: function() {
+          return this.instanceData[this.index + 6] == 1;
+        },
+        set: function(v) {
+          this.instanceData[this.index + 6] = v ? 1 : 0;
+        },
+      },
     },
   });
 

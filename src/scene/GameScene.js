@@ -54,6 +54,11 @@ phina.namespace(function() {
         additiveBlending: true,
         count: 200,
       });
+      glLayer.topEffectDrawer.addObjType("bullets_erase", {
+        className: "passion.BulletEraseEffect",
+        texture: "bullets_erase.png",
+        count: 200,
+      });
       glLayer.topEffectDrawer.addObjType("effect", {
         texture: "texture0.png",
         count: 2,
@@ -84,6 +89,21 @@ phina.namespace(function() {
           }
         }
       });
+      glLayer.shotDrawer.objParameters["shot"].pool.forEach(function(shot) {
+        shot.on("removed", function() {
+          var effect = glLayer.topEffectDrawer.get("bullets_erase");
+          if (effect) {
+            effect
+              .spawn({
+                x: this.x,
+                y: this.y,
+                frameY: 1 / 8,
+              })
+              .addChildTo(glLayer);
+          }
+          shots.erase(this);
+        });
+      });
 
       // 敵
       stageData.enemies
@@ -94,14 +114,18 @@ phina.namespace(function() {
           return enemyData.texture;
         })
         .uniq()
-        .forEach(function(texture) {
-          glLayer.enemyDrawer.addObjType(texture, {
+        .forEach(function(textureName) {
+          glLayer.enemyDrawer.addObjType(textureName, {
             className: "passion.Enemy",
-            texture: texture,
+            texture: textureName,
             count: 50,
           });
+          glLayer.enemyDrawer.objParameters[textureName].pool.forEach(function(enemy) {
+            enemy.on("removed", function() {
+              enemies.erase(this);
+            });
+          });
         });
-
       var enemies = this.enemies;
       gameManager.on("spawnEnemy", function(e) {
         var enemyData = phina.asset.AssetManager.get("json", e.name + ".enemy").data;
@@ -115,6 +139,29 @@ phina.namespace(function() {
 
       // 弾
       passion.Danmaku.setup(this);
+      var bullets = this.bullets;
+      this.on("spawnBullet", function(e) {
+        var bullet = e.bullet;
+        bullet.addChildTo(glLayer);
+        bullets.push(bullet);
+      });
+      glLayer.bulletDrawer.pool.array.forEach(function(bullet) {
+        bullet.on("removed", function() {
+          bullets.erase(this);
+        });
+        bullet.on("erased", function() {
+          var effect = glLayer.topEffectDrawer.get("bullets_erase");
+          if (effect) {
+            effect
+              .spawn({
+                x: this.x,
+                y: this.y,
+                frameY: 0,
+              })
+              .addChildTo(glLayer);
+          }
+        });
+      });
     },
 
     update: function(app) {
@@ -131,22 +178,52 @@ phina.namespace(function() {
 
     _hitTestItemPlayer: function() {},
 
-    _hitTestEnemyShot: function() {},
+    _hitTestEnemyShot: function() {
+      var es = this.enemies.clone();
+      var ss = this.shots.clone();
+      for (var i = 0; i < es.length; i++) {
+        var e = es[i];
+        for (var j = 0; j < ss.length; j++) {
+          var s = ss[j];
+          if (e.isHit(s)) {
+            e.flare("damage", { shot: s });
+            s.flare("hit");
+          }
+        }
+      }
+    },
 
-    _hitTestEnemyPlayer: function() {},
+    _hitTestEnemyPlayer: function() {
+      var es = this.enemies.clone();
+      var p = this.player;
+      for (var i = 0; i < es.length; i++) {
+        if (es[i].isHit(p)) {
+          es[i].remove();
+        }
+      }
+    },
 
-    _hitTestBulletPlayer: function() {},
+    _hitTestBulletPlayer: function() {
+      var bs = this.bullets.clone();
+      var p = this.player;
+      for (var i = 0; i < bs.length; i++) {
+        if (bs[i].isHit(p)) {
+          bs[i].remove();
+        }
+      }
+    },
+
+    eraseAllBullets: function() {
+      this.bullets.clone().forEach(function(bullet) {
+        bullet.flare("erased");
+        bullet.remove();
+      });
+    },
 
     onspawnItem: function(e) {
       var item = e.item;
       item.addChildTo(this.glLayer);
       this.items.push(item);
-    },
-
-    onspawnBullet: function(e) {
-      var bullet = e.bullet;
-      bullet.addChildTo(this.glLayer);
-      this.bullets.push(bullet);
     },
 
   });

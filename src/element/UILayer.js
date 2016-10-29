@@ -64,16 +64,6 @@ phina.namespace(function() {
               },
             },
           },
-          bombButton: {
-            className: "passion.CircleButton",
-            arguments: {
-              text: "BOMB",
-              fontSize: 15,
-              radius: GAME_AREA_WIDTH * 0.09,
-            },
-            x: GAME_AREA_WIDTH * 0.10,
-            y: GAME_AREA_HEIGHT * 1.10,
-          },
           messageWindow: {
             className: "passion.UIFrame",
             arguments: {
@@ -84,7 +74,7 @@ phina.namespace(function() {
             y: SCREEN_HEIGHT * 0.84,
             originX: 0,
             originY: 0,
-            visible: false,
+            // visible: false,
             children: {
               nameLabel: {
                 className: "passion.UIHead2Label",
@@ -97,6 +87,7 @@ phina.namespace(function() {
                 },
                 x: SCREEN_WIDTH * 0.20,
                 y: SCREEN_HEIGHT * 0.034,
+                visible: false,
               },
               mesasgeLabel: {
                 className: "phina.display.Label",
@@ -110,17 +101,20 @@ phina.namespace(function() {
                 },
                 x: SCREEN_WIDTH * 0.05,
                 y: SCREEN_HEIGHT * 0.076,
+                visible: false,
               },
             },
           },
-          test: {
-            className: "phina.display.Sprite",
-            arguments: "test2.png",
-            x: SCREEN_WIDTH * 1.0,
-            y: SCREEN_HEIGHT * 0.84,
-            originX: 1,
-            originY: 1,
-            visible: false,
+          bombButton: {
+            className: "passion.CircleButton",
+            arguments: {
+              text: "BOMB",
+              fontSize: 15,
+              radius: GAME_AREA_WIDTH * 0.09,
+            },
+            x: GAME_AREA_WIDTH * 0.12,
+            y: GAME_AREA_HEIGHT * 0.92,
+            // y: GAME_AREA_HEIGHT * 1.085,
           },
         },
       });

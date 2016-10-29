@@ -15,47 +15,59 @@
       "arguments": { "time": 40 }
     },
     {
-      "type": "enemy",
+      "type": "enemyGroup",
       "arguments": {
-        "name": "s1",
-        "x": 0.1,
-        "y": -0.1,
-        "moveRunner": "heli1",
-        "bulletRunner": "test",
-        "wait": 30
+        "count": 5,
+        "dx": 0.1,
+        "dy": 0.0,
+        "dwait": 10,
+        "enemy": {
+          "name": "s1",
+          "x": 0.5,
+          "y": -0.9,
+          "moveRunner": "heli1",
+          "bulletRunner": "simple"
+        }
       }
     },
     {
-      "type": "enemy",
+      "type": "wait",
+      "arguments": { "time": 240 }
+    },
+    {
+      "type": "enemyGroup",
       "arguments": {
-        "name": "s1",
-        "x": 0.3,
-        "y": -0.1,
-        "moveRunner": "heli1",
-        "bulletRunner": "test",
-        "wait": 20
+        "count": 5,
+        "dx": 0.1,
+        "dy": 0.0,
+        "dwait": 10,
+        "enemy": {
+          "name": "s1",
+          "x": 0.5,
+          "y": -0.5,
+          "moveRunner": "heli1",
+          "bulletRunner": "simple"
+        }
       }
     },
     {
-      "type": "enemy",
-      "arguments": {
-        "name": "s1",
-        "x": 0.5,
-        "y": -0.1,
-        "moveRunner": "heli1",
-        "bulletRunner": "test",
-        "wait": 10
-      }
+      "type": "wait",
+      "arguments": { "time": 240 }
     },
     {
-      "type": "enemy",
+      "type": "enemyGroup",
       "arguments": {
-        "name": "s1",
-        "x": 0.7,
-        "y": -0.1,
-        "moveRunner": "heli1",
-        "bulletRunner": "test",
-        "wait": 0
+        "count": 5,
+        "dx": 0.1,
+        "dy": 0.0,
+        "dwait": 10,
+        "enemy": {
+          "name": "s1",
+          "x": 0.5,
+          "y": -0.1,
+          "moveRunner": "heli1",
+          "bulletRunner": "simple"
+        }
       }
     }
   ]

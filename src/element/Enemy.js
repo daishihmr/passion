@@ -18,10 +18,7 @@ phina.namespace(function() {
 
     hp: 0,
     active: false,
-    // vs shot
-    damageRadius: 0,
-    // vs player
-    attackRadius: 0,
+    hitRadius: 0,
 
     waitTime: 0,
 
@@ -48,11 +45,11 @@ phina.namespace(function() {
           }
           return;
         } else if (this.status === 1) {
-          if (this.damageRadius < this.x && this.x < GAME_AREA_WIDTH - this.damageRadius && this.damageRadius < this.y && this.y < GAME_AREA_HEIGHT - this.damageRadius) {
+          if (this.hitRadius < this.x && this.x < GAME_AREA_WIDTH - this.hitRadius && this.hitRadius < this.y && this.y < GAME_AREA_HEIGHT - this.hitRadius) {
             this.status = 2;
           }
         } else if (this.status === 2 || this.status === 3) {
-          if (this.x < -this.damageRadius || GAME_AREA_WIDTH + this.damageRadius < this.x || this.y < -this.damageRadius || GAME_AREA_HEIGHT + this.damageRadius < this.y) {
+          if (this.x < -this.hitRadius || GAME_AREA_WIDTH + this.hitRadius < this.x || this.y < -this.hitRadius || GAME_AREA_HEIGHT + this.hitRadius < this.y) {
             this.remove();
             return;
           }
@@ -64,7 +61,9 @@ phina.namespace(function() {
           this.moveRunner.update();
           this.x = this.moveRunner.x;
           this.y = this.moveRunner.y;
-          this.rotation = this.moveRunner.direction - Math.PI * 0.5;
+          if (this.rot) {
+            this.rotation = this.moveRunner.direction - Math.PI * 0.5;
+          }
         }
         if (this.bulletRunner) {
           this.bulletRunner.x = this.x;
@@ -80,8 +79,7 @@ phina.namespace(function() {
 
       passion.Sprite.prototype.spawn.call(this, options);
       this.hp = options.hp || 0;
-      this.damageRadius = options.damageRadius || 48;
-      this.attackRadius = options.attackRadius || 24;
+      this.hitRadius = options.hitRadius || 24;
 
       if (options.moveRunner) {
         this.moveRunner = passion.Danmaku.createRunner(options.moveRunner);
@@ -94,10 +92,28 @@ phina.namespace(function() {
         this.bulletRunner.y = this.y;
       }
 
+      this.hp = options.hp;
       this.status = 0;
       this.waitTime = options.wait || 0;
+      this.rot = options.rot || false;
+
+      this.on("damage", function(e) {
+        var shot = e.shot;
+        this.hp -= shot.power;
+        if (this.hp <= 0) {
+          this.flare("killed");
+        }
+      });
+      this.on("killed", function(e) {
+        this.remove();
+      });
 
       return this;
+    },
+
+    isHit: function(target) {
+      if (!target.visible || this.status != 2 || this.hp <= 0) return false;
+      return (this.x - target.x) * (this.x - target.x) + (this.y - target.y) * (this.y - target.y) < this.hitRadius * this.hitRadius;
     },
 
   });

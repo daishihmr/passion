@@ -11,11 +11,9 @@ phina.namespace(function() {
                 message: "./asset/font/YasashisaGothic.ttf",
               },
               image: {
-                "test2.png": "./asset/image/test2.png",
-                // "bg.png": "./asset/image/bg.png",
                 "bullets.png": "./asset/image/bullets.png",
+                "bullets_erase.png": "./asset/image/bullets_erase.png",
                 "texture0.png": "./asset/image/texture0.png",
-                // "enemy1.png": "./asset/image/enemy1.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",

@@ -4,6 +4,9 @@
   "frameY": 0,
   "frameW": 0.25,
   "frameH": 0.25,
-  "scaleX": 48,
-  "scaleY": 48
+  "scaleX": 32,
+  "scaleY": 32,
+  "rot": true,
+  "hitRadius": 18,
+  "hp": 5
 }

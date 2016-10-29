@@ -78,11 +78,9 @@ phina.namespace(function() {
                 message: "./asset/font/YasashisaGothic.ttf",
               },
               image: {
-                "test2.png": "./asset/image/test2.png",
-                // "bg.png": "./asset/image/bg.png",
                 "bullets.png": "./asset/image/bullets.png",
+                "bullets_erase.png": "./asset/image/bullets_erase.png",
                 "texture0.png": "./asset/image/texture0.png",
-                // "enemy1.png": "./asset/image/enemy1.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",
@@ -291,7 +289,7 @@ phina.namespace(function() {
     power: 0,
 
     _active: false,
-    
+
     radius: 20,
 
     init: function(id, instanceData, instanceStride) {
@@ -367,9 +365,20 @@ phina.namespace(function() {
       this.age += 1;
     },
 
-    hitPlayer: function(player) {
-      // TODO
-      this.remove();
+    isHit: function(target) {
+      if (!this.visible || !target.visible) return false;
+      return (this.x - target.x) * (this.x - target.x) + (this.y - target.y) * (this.y - target.y) < 5 * 5;
+    },
+
+    _accessor: {
+      visible: {
+        get: function() {
+          return this.instanceData[this.index + 6] == 1;
+        },
+        set: function(v) {
+          this.instanceData[this.index + 6] = v ? 1 : 0;
+        },
+      },
     },
   });
 
@@ -505,6 +514,39 @@ phina.namespace(function() {
 
 });
 
+phina.namespace(function() {
+
+  phina.define("passion.BulletEraseEffect", {
+    superClass: "passion.Sprite",
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.on("enterframe", function(e) {
+        if (e.app.ticker.frame % 2 === 0) {
+          this.frameX += 1 / 8;
+          if (this.frameX >= 1.0) {
+            this.remove();
+          }
+        }
+      });
+    },
+
+    spawn: function(options) {
+      passion.Sprite.prototype.spawn.call(this, {}.$extend(options, {
+        frameX: 0,
+        frameY: 1 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        scaleX: 64,
+        scaleY: 64,
+        alpha: 1.0,
+      }));
+      return this;
+    },
+
+  });
+});
+
  phina.namespace(function() {
 
    phina.define("passion.CircleButton", {
@@ -613,10 +655,7 @@ phina.namespace(function() {
 
     hp: 0,
     active: false,
-    // vs shot
-    damageRadius: 0,
-    // vs player
-    attackRadius: 0,
+    hitRadius: 0,
 
     waitTime: 0,
 
@@ -643,11 +682,11 @@ phina.namespace(function() {
           }
           return;
         } else if (this.status === 1) {
-          if (this.damageRadius < this.x && this.x < GAME_AREA_WIDTH - this.damageRadius && this.damageRadius < this.y && this.y < GAME_AREA_HEIGHT - this.damageRadius) {
+          if (this.hitRadius < this.x && this.x < GAME_AREA_WIDTH - this.hitRadius && this.hitRadius < this.y && this.y < GAME_AREA_HEIGHT - this.hitRadius) {
             this.status = 2;
           }
         } else if (this.status === 2 || this.status === 3) {
-          if (this.x < -this.damageRadius || GAME_AREA_WIDTH + this.damageRadius < this.x || this.y < -this.damageRadius || GAME_AREA_HEIGHT + this.damageRadius < this.y) {
+          if (this.x < -this.hitRadius || GAME_AREA_WIDTH + this.hitRadius < this.x || this.y < -this.hitRadius || GAME_AREA_HEIGHT + this.hitRadius < this.y) {
             this.remove();
             return;
           }
@@ -659,7 +698,9 @@ phina.namespace(function() {
           this.moveRunner.update();
           this.x = this.moveRunner.x;
           this.y = this.moveRunner.y;
-          this.rotation = this.moveRunner.direction - Math.PI * 0.5;
+          if (this.rot) {
+            this.rotation = this.moveRunner.direction - Math.PI * 0.5;
+          }
         }
         if (this.bulletRunner) {
           this.bulletRunner.x = this.x;
@@ -675,8 +716,7 @@ phina.namespace(function() {
 
       passion.Sprite.prototype.spawn.call(this, options);
       this.hp = options.hp || 0;
-      this.damageRadius = options.damageRadius || 48;
-      this.attackRadius = options.attackRadius || 24;
+      this.hitRadius = options.hitRadius || 24;
 
       if (options.moveRunner) {
         this.moveRunner = passion.Danmaku.createRunner(options.moveRunner);
@@ -689,10 +729,28 @@ phina.namespace(function() {
         this.bulletRunner.y = this.y;
       }
 
+      this.hp = options.hp;
       this.status = 0;
       this.waitTime = options.wait || 0;
+      this.rot = options.rot || false;
+
+      this.on("damage", function(e) {
+        var shot = e.shot;
+        this.hp -= shot.power;
+        if (this.hp <= 0) {
+          this.flare("killed");
+        }
+      });
+      this.on("killed", function(e) {
+        this.remove();
+      });
 
       return this;
+    },
+
+    isHit: function(target) {
+      if (!target.visible || this.status != 2 || this.hp <= 0) return false;
+      return (this.x - target.x) * (this.x - target.x) + (this.y - target.y) * (this.y - target.y) < this.hitRadius * this.hitRadius;
     },
 
   });
@@ -1024,7 +1082,7 @@ phina.namespace(function() {
         }
 
         this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
-        this.y = Math.clamp(this.y, 5, GAME_AREA_HEIGHT - 5);
+        this.y = Math.clamp(this.y, 40, GAME_AREA_HEIGHT - 5);
       }
 
       if (dp.x == 0) {
@@ -1067,6 +1125,7 @@ phina.namespace(function() {
     
     bx: 0,
     by: 0,
+    power: 0,
     
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
@@ -1078,6 +1137,10 @@ phina.namespace(function() {
     },
     
     controll: function(app) {},
+    
+    onhit: function(e) {
+      this.remove();
+    },
   });
 
   phina.define("passion.NormalShot", {
@@ -1090,11 +1153,12 @@ phina.namespace(function() {
     
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
     },
     
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
-        x: player.x + (index - 1) * 10,
+        x: player.x + [-1, 1, 0][index] * 10,
         y: player.y - 30,
         rotation: -Math.PI * 0.5,
         scaleX: 48,
@@ -1129,13 +1193,14 @@ phina.namespace(function() {
     
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
     },
     
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
-        x: player.x + (index - 1) * 20,
+        x: player.x + [-1, 1, 0][index] * 20,
         y: player.y,
-        rotation: -Math.PI * 0.5 + (index - 1) * 0.2,
+        rotation: -Math.PI * 0.5 + [-1, 1, 0][index] * 0.2,
         scaleX: 48,
         scaleY: 48,
         frameX: 1 / 8,
@@ -1710,16 +1775,6 @@ phina.namespace(function() {
               },
             },
           },
-          bombButton: {
-            className: "passion.CircleButton",
-            arguments: {
-              text: "BOMB",
-              fontSize: 15,
-              radius: GAME_AREA_WIDTH * 0.09,
-            },
-            x: GAME_AREA_WIDTH * 0.10,
-            y: GAME_AREA_HEIGHT * 1.10,
-          },
           messageWindow: {
             className: "passion.UIFrame",
             arguments: {
@@ -1730,7 +1785,7 @@ phina.namespace(function() {
             y: SCREEN_HEIGHT * 0.84,
             originX: 0,
             originY: 0,
-            visible: false,
+            // visible: false,
             children: {
               nameLabel: {
                 className: "passion.UIHead2Label",
@@ -1743,6 +1798,7 @@ phina.namespace(function() {
                 },
                 x: SCREEN_WIDTH * 0.20,
                 y: SCREEN_HEIGHT * 0.034,
+                visible: false,
               },
               mesasgeLabel: {
                 className: "phina.display.Label",
@@ -1756,17 +1812,20 @@ phina.namespace(function() {
                 },
                 x: SCREEN_WIDTH * 0.05,
                 y: SCREEN_HEIGHT * 0.076,
+                visible: false,
               },
             },
           },
-          test: {
-            className: "phina.display.Sprite",
-            arguments: "test2.png",
-            x: SCREEN_WIDTH * 1.0,
-            y: SCREEN_HEIGHT * 0.84,
-            originX: 1,
-            originY: 1,
-            visible: false,
+          bombButton: {
+            className: "passion.CircleButton",
+            arguments: {
+              text: "BOMB",
+              fontSize: 15,
+              radius: GAME_AREA_WIDTH * 0.09,
+            },
+            x: GAME_AREA_WIDTH * 0.12,
+            y: GAME_AREA_HEIGHT * 0.92,
+            // y: GAME_AREA_HEIGHT * 1.085,
           },
         },
       });
@@ -1862,7 +1921,7 @@ phina.namespace(function() {
 
     frame: 0,
     waitTo: 0,
-    
+
     timeline: null,
 
     init: function(stageData) {
@@ -1875,7 +1934,7 @@ phina.namespace(function() {
       while ((this.waitTo === this.frame || this.waitTo === -1) && this.timeline.length > 0) {
         this.waitTo = -1;
         var task = this.timeline.shift();
-        
+
         console.log("[task] " + this.frame + " " + task.type);
 
         this[task.type](task.arguments);
@@ -1883,23 +1942,33 @@ phina.namespace(function() {
 
       this.frame += 1;
     },
-    
+
     startBgm: function(arg) {
-      
+
     },
-    
+
     stopBgm: function() {},
-    
+
     wait: function(arg) {
       this.waitTo = this.frame + arg.time;
     },
-    
+
     enemy: function(arg) {
       this.flare("spawnEnemy", arg);
     },
-    
+
+    enemyGroup: function(arg) {
+      for (var i = 0; i < arg.count; i++) {
+        this.flare("spawnEnemy", {}.$extend(arg.enemy, {
+          x: (arg.enemy.x || 0) + (arg.dx || 0) * i,
+          y: (arg.enemy.y || 0) + (arg.dy || 0) * i,
+          wait: (arg.enemy.wait || 0) + (arg.dwait || 0) * i,
+        }));
+      }
+    },
+
     warning: function(arg) {},
-    
+
     boss: function(arg) {},
 
   });
@@ -1997,6 +2066,11 @@ phina.namespace(function() {
         additiveBlending: true,
         count: 200,
       });
+      glLayer.topEffectDrawer.addObjType("bullets_erase", {
+        className: "passion.BulletEraseEffect",
+        texture: "bullets_erase.png",
+        count: 200,
+      });
       glLayer.topEffectDrawer.addObjType("effect", {
         texture: "texture0.png",
         count: 2,
@@ -2027,6 +2101,21 @@ phina.namespace(function() {
           }
         }
       });
+      glLayer.shotDrawer.objParameters["shot"].pool.forEach(function(shot) {
+        shot.on("removed", function() {
+          var effect = glLayer.topEffectDrawer.get("bullets_erase");
+          if (effect) {
+            effect
+              .spawn({
+                x: this.x,
+                y: this.y,
+                frameY: 1 / 8,
+              })
+              .addChildTo(glLayer);
+          }
+          shots.erase(this);
+        });
+      });
 
       // 敵
       stageData.enemies
@@ -2037,14 +2126,18 @@ phina.namespace(function() {
           return enemyData.texture;
         })
         .uniq()
-        .forEach(function(texture) {
-          glLayer.enemyDrawer.addObjType(texture, {
+        .forEach(function(textureName) {
+          glLayer.enemyDrawer.addObjType(textureName, {
             className: "passion.Enemy",
-            texture: texture,
+            texture: textureName,
             count: 50,
           });
+          glLayer.enemyDrawer.objParameters[textureName].pool.forEach(function(enemy) {
+            enemy.on("removed", function() {
+              enemies.erase(this);
+            });
+          });
         });
-
       var enemies = this.enemies;
       gameManager.on("spawnEnemy", function(e) {
         var enemyData = phina.asset.AssetManager.get("json", e.name + ".enemy").data;
@@ -2058,6 +2151,29 @@ phina.namespace(function() {
 
       // 弾
       passion.Danmaku.setup(this);
+      var bullets = this.bullets;
+      this.on("spawnBullet", function(e) {
+        var bullet = e.bullet;
+        bullet.addChildTo(glLayer);
+        bullets.push(bullet);
+      });
+      glLayer.bulletDrawer.pool.array.forEach(function(bullet) {
+        bullet.on("removed", function() {
+          bullets.erase(this);
+        });
+        bullet.on("erased", function() {
+          var effect = glLayer.topEffectDrawer.get("bullets_erase");
+          if (effect) {
+            effect
+              .spawn({
+                x: this.x,
+                y: this.y,
+                frameY: 0,
+              })
+              .addChildTo(glLayer);
+          }
+        });
+      });
     },
 
     update: function(app) {
@@ -2074,22 +2190,52 @@ phina.namespace(function() {
 
     _hitTestItemPlayer: function() {},
 
-    _hitTestEnemyShot: function() {},
+    _hitTestEnemyShot: function() {
+      var es = this.enemies.clone();
+      var ss = this.shots.clone();
+      for (var i = 0; i < es.length; i++) {
+        var e = es[i];
+        for (var j = 0; j < ss.length; j++) {
+          var s = ss[j];
+          if (e.isHit(s)) {
+            e.flare("damage", { shot: s });
+            s.flare("hit");
+          }
+        }
+      }
+    },
 
-    _hitTestEnemyPlayer: function() {},
+    _hitTestEnemyPlayer: function() {
+      var es = this.enemies.clone();
+      var p = this.player;
+      for (var i = 0; i < es.length; i++) {
+        if (es[i].isHit(p)) {
+          es[i].remove();
+        }
+      }
+    },
 
-    _hitTestBulletPlayer: function() {},
+    _hitTestBulletPlayer: function() {
+      var bs = this.bullets.clone();
+      var p = this.player;
+      for (var i = 0; i < bs.length; i++) {
+        if (bs[i].isHit(p)) {
+          bs[i].remove();
+        }
+      }
+    },
+
+    eraseAllBullets: function() {
+      this.bullets.clone().forEach(function(bullet) {
+        bullet.flare("erased");
+        bullet.remove();
+      });
+    },
 
     onspawnItem: function(e) {
       var item = e.item;
       item.addChildTo(this.glLayer);
       this.items.push(item);
-    },
-
-    onspawnBullet: function(e) {
-      var bullet = e.bullet;
-      bullet.addChildTo(this.glLayer);
-      this.bullets.push(bullet);
     },
 
   });
@@ -2225,8 +2371,16 @@ phina.namespace(function() {
         if (task.arguments.bulletRunner) {
           xmls[task.arguments.bulletRunner] = "./asset/bulletml/" + task.arguments.bulletRunner + ".xml";
         }
+        if (task.arguments.enemy) {
+          if (task.arguments.enemy.moveRunner) {
+            xmls[task.arguments.enemy.moveRunner] = "./asset/bulletml/" + task.arguments.enemy.moveRunner + ".xml";
+          }
+          if (task.arguments.enemy.bulletRunner) {
+            xmls[task.arguments.enemy.bulletRunner] = "./asset/bulletml/" + task.arguments.enemy.bulletRunner + ".xml";
+          }
+        }
       });
-
+      
       var loader = phina.asset.AssetLoader();
       loader.load({
         xml: xmls,
