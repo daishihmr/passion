@@ -1,0 +1,1 @@
+<bulletml><action label="top"><changeDirection><direction type="absolute">180</direction><term>1</term></changeDirection><changeSpeed><speed>0.4</speed><term>1</term></changeSpeed><wait>1</wait></action></bulletml>

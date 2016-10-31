@@ -45,11 +45,17 @@ phina.namespace(function() {
     },
 
     enemyGroup: function(arg) {
+      var enemy;
+      if (typeof(arg.enemy) == "string") {
+        enemy = { name: enemy };
+      } else {
+        enemy = arg.enemy;
+      }
       for (var i = 0; i < arg.count; i++) {
-        this.flare("spawnEnemy", {}.$extend(arg.enemy, {
-          x: (arg.enemy.x || 0) + (arg.dx || 0) * i,
-          y: (arg.enemy.y || 0) + (arg.dy || 0) * i,
-          wait: (arg.enemy.wait || 0) + (arg.dwait || 0) * i,
+        this.flare("spawnEnemy", {}.$extend(enemy, {
+          x: (arg.x || 0) + (arg.dx || 0) * i,
+          y: (arg.y || 0) + (arg.dy || 0) * i,
+          wait: (arg.wait || 0) + (arg.dwait || 0) * i,
         }));
       }
     },

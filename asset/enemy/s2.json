@@ -1,6 +1,6 @@
 {
   "texture": "enemy1",
-  "frameX": 0,
+  "frameX": 0.25,
   "frameY": 0,
   "frameW": 0.25,
   "frameH": 0.25,
@@ -9,7 +9,7 @@
   "rot": true,
   "hitRadius": 18,
   "hp": 2,
-  "motion": "heli1",
+  "motion": "heli2",
   "attack": "simple",
   "red": 1.5,
   "green": 1.5,

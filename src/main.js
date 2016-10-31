@@ -11,7 +11,7 @@ phina.main(function() {
     height: SCREEN_HEIGHT,
     backgroundColor: "transparent",
   });
-  
+
   phina.display.Label.defaults.fontFamily = "main";
   phina.display.Label.defaults.fill = "white";
 
@@ -33,9 +33,7 @@ phina.main(function() {
 
       {
         className: "passion.StageAssetLoadScene",
-        arguments: {
-          stage: "testStage",
-        },
+        arguments: { stage: "testStage" },
       },
 
       {

@@ -3,8 +3,8 @@ phina.namespace(function() {
   phina.define("passion.Enemy", {
     superClass: "passion.Sprite",
 
-    moveRunner: null,
-    bulletRunner: null,
+    motionRunner: null,
+    attackRunner: null,
 
     /**
      * -1: pooling
@@ -32,8 +32,8 @@ phina.namespace(function() {
         this.clear("damaged");
         this.clear("killed");
         this.tweener.clear();
-        this.moveRunner = null;
-        this.bulletRunner = null;
+        this.motionRunner = null;
+        this.attackRunner = null;
         this.status = -1;
         this.waitTime = 0;
       });
@@ -55,20 +55,22 @@ phina.namespace(function() {
           }
         }
 
-        if (this.moveRunner) {
+        if (this.motionRunner) {
           this.bx = this.x;
           this.by = this.y;
-          this.moveRunner.update();
-          this.x = this.moveRunner.x;
-          this.y = this.moveRunner.y;
+          this.motionRunner.update();
+          this.x = this.motionRunner.x;
+          this.y = this.motionRunner.y;
           if (this.rot) {
-            this.rotation = this.moveRunner.direction - Math.PI * 0.5;
+            this.rotation = this.motionRunner.direction - Math.PI * 0.5;
           }
         }
-        if (this.bulletRunner) {
-          this.bulletRunner.x = this.x;
-          this.bulletRunner.y = this.y;
-          this.bulletRunner.update();
+        if (!this.rot || this.y < passion.Danmaku.config.target.y) {
+          if (this.attackRunner) {
+            this.attackRunner.x = this.x;
+            this.attackRunner.y = this.y;
+            this.attackRunner.update();
+          }
         }
         // this.flare("everyframe");
       });
@@ -81,15 +83,15 @@ phina.namespace(function() {
       this.hp = options.hp || 0;
       this.hitRadius = options.hitRadius || 24;
 
-      if (options.moveRunner) {
-        this.moveRunner = passion.Danmaku.createRunner(options.moveRunner);
-        this.moveRunner.x = this.x;
-        this.moveRunner.y = this.y;
+      if (options.motion) {
+        this.motionRunner = passion.Danmaku.createRunner(options.motion);
+        this.motionRunner.x = this.x;
+        this.motionRunner.y = this.y;
       }
-      if (options.bulletRunner) {
-        this.bulletRunner = passion.Danmaku.createRunner(options.bulletRunner);
-        this.bulletRunner.x = this.x;
-        this.bulletRunner.y = this.y;
+      if (options.attack) {
+        this.attackRunner = passion.Danmaku.createRunner(options.attack);
+        this.attackRunner.x = this.x;
+        this.attackRunner.y = this.y;
       }
 
       this.hp = options.hp;

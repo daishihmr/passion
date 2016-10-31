@@ -1,0 +1,17 @@
+{
+  "texture": "enemy1",
+  "frameX": 0.0,
+  "frameY": 0.5,
+  "frameW": 1.0,
+  "frameH": 0.5,
+  "scaleX": 200,
+  "scaleY": 100,
+  "rot": true,
+  "hitRadius": 50,
+  "hp": 200,
+  "motion": "ground",
+  "attack": "simple",
+  "red": 1.5,
+  "green": 1.5,
+  "blue": 1.5
+}

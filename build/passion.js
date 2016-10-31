@@ -11,7 +11,7 @@ phina.main(function() {
     height: SCREEN_HEIGHT,
     backgroundColor: "transparent",
   });
-  
+
   phina.display.Label.defaults.fontFamily = "main";
   phina.display.Label.defaults.fill = "white";
 
@@ -33,9 +33,7 @@ phina.main(function() {
 
       {
         className: "passion.StageAssetLoadScene",
-        arguments: {
-          stage: "testStage",
-        },
+        arguments: { stage: "testStage" },
       },
 
       {
@@ -90,13 +88,8 @@ phina.namespace(function() {
                 "bullets.fs": "./asset/shader/bullets.fs",
                 "sprites.fs": "./asset/shader/sprites.fs",
               },
-              // xml: {
-              //   "simple": "./asset/bulletml/simple.xml",
-              //   "test": "./asset/bulletml/test.xml",
-              // },
               sound: {
                 "home": "./asset/sound/nc136160.mp3",
-                // "bgm1": "./asset/sound/nc140053.mp3",
               },
             };
           default:
@@ -640,8 +633,8 @@ phina.namespace(function() {
   phina.define("passion.Enemy", {
     superClass: "passion.Sprite",
 
-    moveRunner: null,
-    bulletRunner: null,
+    motionRunner: null,
+    attackRunner: null,
 
     /**
      * -1: pooling
@@ -669,8 +662,8 @@ phina.namespace(function() {
         this.clear("damaged");
         this.clear("killed");
         this.tweener.clear();
-        this.moveRunner = null;
-        this.bulletRunner = null;
+        this.motionRunner = null;
+        this.attackRunner = null;
         this.status = -1;
         this.waitTime = 0;
       });
@@ -692,20 +685,22 @@ phina.namespace(function() {
           }
         }
 
-        if (this.moveRunner) {
+        if (this.motionRunner) {
           this.bx = this.x;
           this.by = this.y;
-          this.moveRunner.update();
-          this.x = this.moveRunner.x;
-          this.y = this.moveRunner.y;
+          this.motionRunner.update();
+          this.x = this.motionRunner.x;
+          this.y = this.motionRunner.y;
           if (this.rot) {
-            this.rotation = this.moveRunner.direction - Math.PI * 0.5;
+            this.rotation = this.motionRunner.direction - Math.PI * 0.5;
           }
         }
-        if (this.bulletRunner) {
-          this.bulletRunner.x = this.x;
-          this.bulletRunner.y = this.y;
-          this.bulletRunner.update();
+        if (!this.rot || this.y < passion.Danmaku.config.target.y) {
+          if (this.attackRunner) {
+            this.attackRunner.x = this.x;
+            this.attackRunner.y = this.y;
+            this.attackRunner.update();
+          }
         }
         // this.flare("everyframe");
       });
@@ -718,15 +713,15 @@ phina.namespace(function() {
       this.hp = options.hp || 0;
       this.hitRadius = options.hitRadius || 24;
 
-      if (options.moveRunner) {
-        this.moveRunner = passion.Danmaku.createRunner(options.moveRunner);
-        this.moveRunner.x = this.x;
-        this.moveRunner.y = this.y;
+      if (options.motion) {
+        this.motionRunner = passion.Danmaku.createRunner(options.motion);
+        this.motionRunner.x = this.x;
+        this.motionRunner.y = this.y;
       }
-      if (options.bulletRunner) {
-        this.bulletRunner = passion.Danmaku.createRunner(options.bulletRunner);
-        this.bulletRunner.x = this.x;
-        this.bulletRunner.y = this.y;
+      if (options.attack) {
+        this.attackRunner = passion.Danmaku.createRunner(options.attack);
+        this.attackRunner.x = this.x;
+        this.attackRunner.y = this.y;
       }
 
       this.hp = options.hp;
@@ -1053,8 +1048,8 @@ phina.namespace(function() {
 
     spawn: function() {
       passion.Sprite.prototype.spawn.call(this, {
-        scaleX: 75,
-        scaleY: 75,
+        scaleX: 64,
+        scaleY: 64,
         frameX: 3 / 8,
         frameY: 0 / 8,
         frameW: 1 / 8,
@@ -1958,11 +1953,17 @@ phina.namespace(function() {
     },
 
     enemyGroup: function(arg) {
+      var enemy;
+      if (typeof(arg.enemy) == "string") {
+        enemy = { name: enemy };
+      } else {
+        enemy = arg.enemy;
+      }
       for (var i = 0; i < arg.count; i++) {
-        this.flare("spawnEnemy", {}.$extend(arg.enemy, {
-          x: (arg.enemy.x || 0) + (arg.dx || 0) * i,
-          y: (arg.enemy.y || 0) + (arg.dy || 0) * i,
-          wait: (arg.enemy.wait || 0) + (arg.dwait || 0) * i,
+        this.flare("spawnEnemy", {}.$extend(enemy, {
+          x: (arg.x || 0) + (arg.dx || 0) * i,
+          y: (arg.y || 0) + (arg.dy || 0) * i,
+          wait: (arg.wait || 0) + (arg.dwait || 0) * i,
         }));
       }
     },
@@ -2058,7 +2059,6 @@ phina.namespace(function() {
       this.uiLayer.tweener.clear().fadeIn(500);
 
       var gameManager = this.gameManager;
-
       var glLayer = this.glLayer;
 
       glLayer.effectDrawer.addObjType("effect", {
@@ -2357,26 +2357,26 @@ phina.namespace(function() {
           return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
         })
         .forEach(function(enemyData) {
-          if (enemyData.moveRunner) {
-            xmls[enemyData.moveRunner] = "./asset/bulletml/" + enemyData.moveRunner + ".xml";
+          if (enemyData.motion) {
+            xmls[enemyData.motion] = "./asset/bulletml/" + enemyData.motion + ".xml";
           }
-          if (enemyData.bulletRunner) {
-            xmls[enemyData.bulletRunner] = "./asset/bulletml/" + enemyData.bulletRunner + ".xml";
+          if (enemyData.attack) {
+            xmls[enemyData.attack] = "./asset/bulletml/" + enemyData.attack + ".xml";
           }
         });
       stageData.timeline.forEach(function(task) {
-        if (task.arguments.moveRunner) {
-          xmls[task.arguments.moveRunner] = "./asset/bulletml/" + task.arguments.moveRunner + ".xml";
+        if (task.arguments.motion) {
+          xmls[task.arguments.motion] = "./asset/bulletml/" + task.arguments.motion + ".xml";
         }
-        if (task.arguments.bulletRunner) {
-          xmls[task.arguments.bulletRunner] = "./asset/bulletml/" + task.arguments.bulletRunner + ".xml";
+        if (task.arguments.attack) {
+          xmls[task.arguments.attack] = "./asset/bulletml/" + task.arguments.attack + ".xml";
         }
         if (task.arguments.enemy) {
-          if (task.arguments.enemy.moveRunner) {
-            xmls[task.arguments.enemy.moveRunner] = "./asset/bulletml/" + task.arguments.enemy.moveRunner + ".xml";
+          if (task.arguments.enemy.motion) {
+            xmls[task.arguments.enemy.motion] = "./asset/bulletml/" + task.arguments.enemy.motion + ".xml";
           }
-          if (task.arguments.enemy.bulletRunner) {
-            xmls[task.arguments.enemy.bulletRunner] = "./asset/bulletml/" + task.arguments.enemy.bulletRunner + ".xml";
+          if (task.arguments.enemy.attack) {
+            xmls[task.arguments.enemy.attack] = "./asset/bulletml/" + task.arguments.enemy.attack + ".xml";
           }
         }
       });

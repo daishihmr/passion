@@ -1,74 +1,37 @@
 {
   "name": "テストステージ",
   "enemies": [
-    "s1"
+    "s1",
+    "s2",
+    "s3",
+    "s4",
+    "s5",
+    "s6",
+    "m1",
+    "boss1"
   ],
   "bgm": "nc140053",
   "bg": "bg",
-  "timeline": [
-    {
-      "type": "startBgm",
-      "arguments": { "bgm": "bgm1" }
-    },
-    {
-      "type": "wait",
-      "arguments": { "time": 40 }
-    },
-    {
-      "type": "enemyGroup",
-      "arguments": {
-        "count": 5,
-        "dx": 0.1,
-        "dy": 0.0,
-        "dwait": 10,
-        "enemy": {
-          "name": "s1",
-          "x": 0.5,
-          "y": -0.9,
-          "moveRunner": "heli1",
-          "bulletRunner": "simple"
-        }
-      }
-    },
-    {
-      "type": "wait",
-      "arguments": { "time": 240 }
-    },
-    {
-      "type": "enemyGroup",
-      "arguments": {
-        "count": 5,
-        "dx": 0.1,
-        "dy": 0.0,
-        "dwait": 10,
-        "enemy": {
-          "name": "s1",
-          "x": 0.5,
-          "y": -0.5,
-          "moveRunner": "heli1",
-          "bulletRunner": "simple"
-        }
-      }
-    },
-    {
-      "type": "wait",
-      "arguments": { "time": 240 }
-    },
-    {
-      "type": "enemyGroup",
-      "arguments": {
-        "count": 5,
-        "dx": 0.1,
-        "dy": 0.0,
-        "dwait": 10,
-        "enemy": {
-          "name": "s1",
-          "x": 0.5,
-          "y": -0.1,
-          "moveRunner": "heli1",
-          "bulletRunner": "simple"
-        }
-      }
-    }
-  ]
+  "timeline": [{
+    "type": "startBgm",
+    "arguments": { "bgm": "bgm1" }
+  }, {
+    "type": "wait",
+    "arguments": { "time": 40 }
+  }, {
+    "type": "enemyGroup",
+    "arguments": { "enemy": { "name": "s3" }, "x": 0.25, "y": -0.1, "count": 3, "dx": 0.25, "dy": 0.0, "dwait": 60 }
+  }, {
+    "type": "wait",
+    "arguments": { "time": 40 }
+  }, {
+    "type": "enemyGroup",
+    "arguments": { "enemy": { "name": "s1" }, "x": 0.1, "y": -0.9, "count": 5, "dx": 0.1, "dy": 0.0, "dwait": 10 }
+  }, {
+    "type": "wait",
+    "arguments": { "time": 40 }
+  }, {
+    "type": "enemyGroup",
+    "arguments": { "enemy": { "name": "s1", "motion": "heli2" }, "x": 0.1, "y": -0.9, "count": 5, "dx": 0.1, "dy": 0.0, "dwait": 10 }
+  }]
 }

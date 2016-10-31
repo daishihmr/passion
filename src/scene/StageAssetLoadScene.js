@@ -114,26 +114,26 @@ phina.namespace(function() {
           return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
         })
         .forEach(function(enemyData) {
-          if (enemyData.moveRunner) {
-            xmls[enemyData.moveRunner] = "./asset/bulletml/" + enemyData.moveRunner + ".xml";
+          if (enemyData.motion) {
+            xmls[enemyData.motion] = "./asset/bulletml/" + enemyData.motion + ".xml";
           }
-          if (enemyData.bulletRunner) {
-            xmls[enemyData.bulletRunner] = "./asset/bulletml/" + enemyData.bulletRunner + ".xml";
+          if (enemyData.attack) {
+            xmls[enemyData.attack] = "./asset/bulletml/" + enemyData.attack + ".xml";
           }
         });
       stageData.timeline.forEach(function(task) {
-        if (task.arguments.moveRunner) {
-          xmls[task.arguments.moveRunner] = "./asset/bulletml/" + task.arguments.moveRunner + ".xml";
+        if (task.arguments.motion) {
+          xmls[task.arguments.motion] = "./asset/bulletml/" + task.arguments.motion + ".xml";
         }
-        if (task.arguments.bulletRunner) {
-          xmls[task.arguments.bulletRunner] = "./asset/bulletml/" + task.arguments.bulletRunner + ".xml";
+        if (task.arguments.attack) {
+          xmls[task.arguments.attack] = "./asset/bulletml/" + task.arguments.attack + ".xml";
         }
         if (task.arguments.enemy) {
-          if (task.arguments.enemy.moveRunner) {
-            xmls[task.arguments.enemy.moveRunner] = "./asset/bulletml/" + task.arguments.enemy.moveRunner + ".xml";
+          if (task.arguments.enemy.motion) {
+            xmls[task.arguments.enemy.motion] = "./asset/bulletml/" + task.arguments.enemy.motion + ".xml";
           }
-          if (task.arguments.enemy.bulletRunner) {
-            xmls[task.arguments.enemy.bulletRunner] = "./asset/bulletml/" + task.arguments.enemy.bulletRunner + ".xml";
+          if (task.arguments.enemy.attack) {
+            xmls[task.arguments.enemy.attack] = "./asset/bulletml/" + task.arguments.enemy.attack + ".xml";
           }
         }
       });

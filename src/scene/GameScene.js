@@ -46,7 +46,6 @@ phina.namespace(function() {
       this.uiLayer.tweener.clear().fadeIn(500);
 
       var gameManager = this.gameManager;
-
       var glLayer = this.glLayer;
 
       glLayer.effectDrawer.addObjType("effect", {

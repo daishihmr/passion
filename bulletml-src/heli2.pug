@@ -1,0 +1,16 @@
+bulletml
+  action(label='top')
+    changeDirection
+      direction(type='absolute') 180
+      term 1
+    changeSpeed
+      speed 4.0
+      term 1
+    wait 30
+    repeat
+      times 4
+      action
+        changeDirection
+          direction(type='aim') 0
+          term 30
+        wait 10

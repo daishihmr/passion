@@ -111,8 +111,8 @@ phina.namespace(function() {
 
     spawn: function() {
       passion.Sprite.prototype.spawn.call(this, {
-        scaleX: 75,
-        scaleY: 75,
+        scaleX: 64,
+        scaleY: 64,
         frameX: 3 / 8,
         frameY: 0 / 8,
         frameW: 1 / 8,

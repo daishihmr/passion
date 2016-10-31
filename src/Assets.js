@@ -23,13 +23,8 @@ phina.namespace(function() {
                 "bullets.fs": "./asset/shader/bullets.fs",
                 "sprites.fs": "./asset/shader/sprites.fs",
               },
-              // xml: {
-              //   "simple": "./asset/bulletml/simple.xml",
-              //   "test": "./asset/bulletml/test.xml",
-              // },
               sound: {
                 "home": "./asset/sound/nc136160.mp3",
-                // "bgm1": "./asset/sound/nc140053.mp3",
               },
             };
           default:
