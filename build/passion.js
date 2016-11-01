@@ -994,6 +994,8 @@ phina.namespace(function() {
 
         var aura = glLayer.effectDrawer.get("effect");
         aura.spawn({
+          x: player.x,
+          y: player.y,
           scaleX: 80,
           scaleY: 80,
           frameX: 0 / 8,
@@ -1013,6 +1015,8 @@ phina.namespace(function() {
 
         var centerMarker = glLayer.topEffectDrawer.get("effect");
         centerMarker.spawn({
+          x: player.x,
+          y: player.y,
           scaleX: 14,
           scaleY: 14,
           frameX: 7 / 8,
@@ -1048,6 +1052,8 @@ phina.namespace(function() {
 
     spawn: function() {
       passion.Sprite.prototype.spawn.call(this, {
+        x: GAME_AREA_WIDTH * 0.5,
+        y: GAME_AREA_HEIGHT * 0.9,
         scaleX: 64,
         scaleY: 64,
         frameX: 3 / 8,
@@ -1058,8 +1064,6 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
-      this.x = GAME_AREA_WIDTH * 0.5;
-      this.y = GAME_AREA_HEIGHT * 0.9;
       return this;
     },
 
@@ -1086,8 +1090,9 @@ phina.namespace(function() {
           this.roll = 0;
         }
       }
-      
-      if (app.pointers.length > 0 && this.heat <= 0) {
+
+      var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
+      if (touch && this.heat <= 0) {
         this.flare("fireShot");
         this.heat = this.heatByShot;
       }
@@ -2407,6 +2412,10 @@ phina.namespace(function() {
       },
     },
     init: function() {},
+  });
+  
+  phina.accessory.Tweener.$method("clone", function() {
+    return phina.accessory.Tweener(this.target);
   });
 
 });

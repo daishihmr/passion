@@ -8,5 +8,9 @@ phina.namespace(function() {
     },
     init: function() {},
   });
+  
+  phina.accessory.Tweener.$method("clone", function() {
+    return phina.accessory.Tweener(this.target);
+  });
 
 });
