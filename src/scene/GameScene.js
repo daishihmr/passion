@@ -5,6 +5,7 @@ phina.namespace(function() {
 
     random: null,
     gameManager: null,
+    started: false,
 
     shots: null,
     enemies: null,
@@ -67,7 +68,10 @@ phina.namespace(function() {
       passion.Background.setup(glLayer, "bg", 1069);
 
       // 自機
-      var player = this.player = passion.Player.setup(glLayer).addChildTo(glLayer);
+      var playerSpec = {
+        hp: 100,
+      };
+      var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
       var shotClassName = "passion.WideShot";
@@ -161,11 +165,17 @@ phina.namespace(function() {
           }
         });
       });
+
+      this.uiLayer.showReadyGo(function() {
+        this.started = true;
+      }.bind(this));
     },
 
     update: function(app) {
-      this.gameManager.update(app);
-      this._hitTest();
+      if (this.started) {
+        this.gameManager.update(app);
+        this._hitTest();
+      }
     },
 
     _hitTest: function() {
@@ -185,7 +195,7 @@ phina.namespace(function() {
         for (var j = 0; j < ss.length; j++) {
           var s = ss[j];
           if (e.isHit(s)) {
-            e.flare("damage", { shot: s });
+            e.flare("damaged", { shot: s });
             s.flare("hit");
           }
         }
@@ -196,8 +206,9 @@ phina.namespace(function() {
       var es = this.enemies.clone();
       var p = this.player;
       for (var i = 0; i < es.length; i++) {
-        if (es[i].isHit(p)) {
-          es[i].remove();
+        var e = es[i];
+        if (e.isHit(p)) {
+          p.flare("damaged", { another: e });
         }
       }
     },
@@ -206,8 +217,9 @@ phina.namespace(function() {
       var bs = this.bullets.clone();
       var p = this.player;
       for (var i = 0; i < bs.length; i++) {
-        if (bs[i].isHit(p)) {
-          bs[i].remove();
+        var b = bs[i];
+        if (b.isHit(p)) {
+          p.flare("damaged", { another: b });
         }
       }
     },

@@ -4,14 +4,14 @@ phina.namespace(function() {
     superClass: "passion.Sprite",
 
     _static: {
-      setup: function(glLayer) {
+      setup: function(glLayer, spec) {
         glLayer.playerDrawer.addObjType("player", {
           className: "passion.Player",
           texture: "texture0.png",
         });
 
         var player = glLayer.playerDrawer.get("player");
-        player.spawn();
+        player.spawn(spec);
 
         player.on("enterframe", function(e) {
           if (e.app.ticker.frame % 2 !== 0) return;
@@ -101,19 +101,26 @@ phina.namespace(function() {
         return player;
       },
     },
+    
+    hp: 0,
 
     _roll: 0,
     heat: 0,
     heatByShot: 0,
 
+    fireable: true,
+    controllable: true,
+    mutekiTime: 0,
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("enterframe", function(e) {
         this.controll(e.app);
+        if (this.mutekiTime > 0) this.mutekiTime -= 1;
       });
     },
 
-    spawn: function() {
+    spawn: function(spec) {
       passion.Sprite.prototype.spawn.call(this, {
         x: GAME_AREA_WIDTH * 0.5,
         y: GAME_AREA_HEIGHT * 0.9,
@@ -127,40 +134,53 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
+      
+      this.hp = spec.hp;
+
       return this;
     },
 
     controll: function(app) {
-      var p = app.pointer;
-      var dp = p.deltaPosition;
+      if (this.controllable) {
+        var p = app.pointer;
+        var dp = p.deltaPosition;
 
-      if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
-        this.x += dp.x * 2;
-        this.y += dp.y * 2;
-        if (dp.x < 0) {
-          this.roll -= 0.2;
-        } else if (0 < dp.x) {
-          this.roll += 0.2;
+        if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
+          this.x += dp.x * 2;
+          this.y += dp.y * 2;
+          if (dp.x < 0) {
+            this.roll -= 0.2;
+          } else if (0 < dp.x) {
+            this.roll += 0.2;
+          }
+
+          this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
+          this.y = Math.clamp(this.y, 40, GAME_AREA_HEIGHT - 5);
         }
-
-        this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
-        this.y = Math.clamp(this.y, 40, GAME_AREA_HEIGHT - 5);
       }
 
-      if (dp.x == 0) {
+      if (!this.controllable || dp.x == 0) {
         this.roll *= 0.9;
         if (-0.01 < this.roll && this.roll < 0.01) {
           this.roll = 0;
         }
       }
 
-      var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
-      if (touch && this.heat <= 0) {
-        this.flare("fireShot");
-        this.heat = this.heatByShot;
+      if (this.fireable) {
+        var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
+        if (touch && this.heat <= 0) {
+          this.flare("fireShot");
+          this.heat = this.heatByShot;
+        }
       }
 
       this.heat -= 1;
+    },
+
+    ondamaged: function(e) {
+      if (this.mutekiTime > 0) return;
+
+      var another = e.another;
     },
 
     _accessor: {

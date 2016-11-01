@@ -729,16 +729,19 @@ phina.namespace(function() {
       this.waitTime = options.wait || 0;
       this.rot = options.rot || false;
 
-      this.on("damage", function(e) {
-        var shot = e.shot;
-        this.hp -= shot.power;
-        if (this.hp <= 0) {
-          this.flare("killed");
-        }
-      });
-      this.on("killed", function(e) {
-        this.remove();
-      });
+      if (!options.muteki) {
+        this.on("damaged", function(e) {
+          var shot = e.shot;
+          this.hp -= shot.power;
+          if (this.hp <= 0) {
+            this.flare("killed");
+          }
+        });
+
+        this.on("killed", function(e) {
+          this.remove();
+        });
+      }
 
       return this;
     },
@@ -941,14 +944,14 @@ phina.namespace(function() {
     superClass: "passion.Sprite",
 
     _static: {
-      setup: function(glLayer) {
+      setup: function(glLayer, spec) {
         glLayer.playerDrawer.addObjType("player", {
           className: "passion.Player",
           texture: "texture0.png",
         });
 
         var player = glLayer.playerDrawer.get("player");
-        player.spawn();
+        player.spawn(spec);
 
         player.on("enterframe", function(e) {
           if (e.app.ticker.frame % 2 !== 0) return;
@@ -1038,19 +1041,26 @@ phina.namespace(function() {
         return player;
       },
     },
+    
+    hp: 0,
 
     _roll: 0,
     heat: 0,
     heatByShot: 0,
 
+    fireable: true,
+    controllable: true,
+    mutekiTime: 0,
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("enterframe", function(e) {
         this.controll(e.app);
+        if (this.mutekiTime > 0) this.mutekiTime -= 1;
       });
     },
 
-    spawn: function() {
+    spawn: function(spec) {
       passion.Sprite.prototype.spawn.call(this, {
         x: GAME_AREA_WIDTH * 0.5,
         y: GAME_AREA_HEIGHT * 0.9,
@@ -1064,40 +1074,53 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
+      
+      this.hp = spec.hp;
+
       return this;
     },
 
     controll: function(app) {
-      var p = app.pointer;
-      var dp = p.deltaPosition;
+      if (this.controllable) {
+        var p = app.pointer;
+        var dp = p.deltaPosition;
 
-      if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
-        this.x += dp.x * 2;
-        this.y += dp.y * 2;
-        if (dp.x < 0) {
-          this.roll -= 0.2;
-        } else if (0 < dp.x) {
-          this.roll += 0.2;
+        if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
+          this.x += dp.x * 2;
+          this.y += dp.y * 2;
+          if (dp.x < 0) {
+            this.roll -= 0.2;
+          } else if (0 < dp.x) {
+            this.roll += 0.2;
+          }
+
+          this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
+          this.y = Math.clamp(this.y, 40, GAME_AREA_HEIGHT - 5);
         }
-
-        this.x = Math.clamp(this.x, 5, GAME_AREA_WIDTH - 5);
-        this.y = Math.clamp(this.y, 40, GAME_AREA_HEIGHT - 5);
       }
 
-      if (dp.x == 0) {
+      if (!this.controllable || dp.x == 0) {
         this.roll *= 0.9;
         if (-0.01 < this.roll && this.roll < 0.01) {
           this.roll = 0;
         }
       }
 
-      var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
-      if (touch && this.heat <= 0) {
-        this.flare("fireShot");
-        this.heat = this.heatByShot;
+      if (this.fireable) {
+        var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
+        if (touch && this.heat <= 0) {
+          this.flare("fireShot");
+          this.heat = this.heatByShot;
+        }
       }
 
       this.heat -= 1;
+    },
+
+    ondamaged: function(e) {
+      if (this.mutekiTime > 0) return;
+
+      var another = e.another;
     },
 
     _accessor: {
@@ -1819,14 +1842,43 @@ phina.namespace(function() {
           bombButton: {
             className: "passion.CircleButton",
             arguments: {
-              text: "BOMB",
+              text: "HYPER",
               fontSize: 15,
               radius: GAME_AREA_WIDTH * 0.09,
             },
             x: GAME_AREA_WIDTH * 0.12,
             y: GAME_AREA_HEIGHT * 0.92,
-            // y: GAME_AREA_HEIGHT * 1.085,
           },
+          readyLabels: {
+            className: "phina.display.DisplayElement",
+            x: GAME_AREA_WIDTH * 0.5,
+            y: GAME_AREA_HEIGHT * 0.5,
+            children: "Ready".split("").map(function(c, i) {
+              return {
+                className: "phina.display.Label",
+                arguments: {
+                  text: c,
+                  align: "center",
+                  baseline: "middle",
+                  fontSize: 60,
+                },
+                x: ("Ready".length * -0.5 + i + 0.5) * 60 * 0.56,
+              };
+            }),
+            visible: false,
+          },
+          goLabel: {
+            className: "phina.display.Label",
+            arguments: {
+              text: "GO!!",
+              align: "center",
+              baseline: "middle",
+              fontSize: 60,
+            },
+            x: GAME_AREA_WIDTH * 0.5,
+            y: GAME_AREA_HEIGHT * 0.5,
+            visible: false,
+          }
         },
       });
 
@@ -1837,7 +1889,56 @@ phina.namespace(function() {
           self.scoreBg.highscoreLabel.text = passion.Utils.sep(this.highScore);
         }
       });
-      gameManager.on("damage", function(e) {});
+      gameManager.on("damaged", function(e) {});
+    },
+
+    showReadyGo: function(callback) {
+      this.readyLabels.visible = true;
+      this.goLabel.visible = true;
+
+      this.readyLabels.children.forEach(function(label, i) {
+        label.tweener
+          .set({
+            scaleX: 4,
+            scaleY: 4,
+            alpha: 0,
+          })
+          .wait(i * 200)
+          .to({
+            scaleX: 1,
+            scaleY: 1,
+            alpha: 1
+          }, 200)
+          .wait(500 + ("Ready".length - i) * 200)
+          .to({
+            scaleX: 0,
+            scaleY: 0,
+            alpha: 0,
+          }, 100);
+      });
+      this.goLabel.tweener
+        .set({
+          scaleX: 0,
+          scaleY: 0,
+          alpha: 0,
+        })
+        .wait(900 + "Ready".length * 200)
+        .to({
+          scaleX: 1,
+          scaleY: 1,
+          alpha: 1
+        }, 200)
+        .wait(500)
+        .to({
+          scaleX: 5,
+          scaleY: 5,
+          alpha: 0,
+        }, 200)
+        .call(function() {
+          this.readyLabels.visible = false;
+          this.goLabel.visible = false;
+          callback();
+        }.bind(this));
     },
 
     damageTexture: function() {
@@ -1943,7 +2044,7 @@ phina.namespace(function() {
       this.frame += 1;
     },
 
-    startBgm: function(arg) {
+    startBgm: function() {
 
     },
 
@@ -2023,6 +2124,7 @@ phina.namespace(function() {
 
     random: null,
     gameManager: null,
+    started: false,
 
     shots: null,
     enemies: null,
@@ -2085,7 +2187,10 @@ phina.namespace(function() {
       passion.Background.setup(glLayer, "bg", 1069);
 
       // 自機
-      var player = this.player = passion.Player.setup(glLayer).addChildTo(glLayer);
+      var playerSpec = {
+        hp: 100,
+      };
+      var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
       var shotClassName = "passion.WideShot";
@@ -2179,11 +2284,17 @@ phina.namespace(function() {
           }
         });
       });
+
+      this.uiLayer.showReadyGo(function() {
+        this.started = true;
+      }.bind(this));
     },
 
     update: function(app) {
-      this.gameManager.update(app);
-      this._hitTest();
+      if (this.started) {
+        this.gameManager.update(app);
+        this._hitTest();
+      }
     },
 
     _hitTest: function() {
@@ -2203,7 +2314,7 @@ phina.namespace(function() {
         for (var j = 0; j < ss.length; j++) {
           var s = ss[j];
           if (e.isHit(s)) {
-            e.flare("damage", { shot: s });
+            e.flare("damaged", { shot: s });
             s.flare("hit");
           }
         }
@@ -2214,8 +2325,9 @@ phina.namespace(function() {
       var es = this.enemies.clone();
       var p = this.player;
       for (var i = 0; i < es.length; i++) {
-        if (es[i].isHit(p)) {
-          es[i].remove();
+        var e = es[i];
+        if (e.isHit(p)) {
+          p.flare("damaged", { another: e });
         }
       }
     },
@@ -2224,8 +2336,9 @@ phina.namespace(function() {
       var bs = this.bullets.clone();
       var p = this.player;
       for (var i = 0; i < bs.length; i++) {
-        if (bs[i].isHit(p)) {
-          bs[i].remove();
+        var b = bs[i];
+        if (b.isHit(p)) {
+          p.flare("damaged", { another: b });
         }
       }
     },
@@ -2263,11 +2376,11 @@ phina.namespace(function() {
             originY: 0,
           },
           bg1: {
-            className: "phina.display.RectangleShape",
+            className: "passion.UIFrame",
             arguments: {
               fill: "black",
               stroke: null,
-              width: SCREEN_WIDTH,
+              width: SCREEN_WIDTH * 0.9,
               height: SCREEN_HEIGHT * 0.1,
             },
             x: SCREEN_WIDTH * 0.5,
@@ -2285,8 +2398,18 @@ phina.namespace(function() {
         },
       });
 
-      var stageName = options.stage;
+      this.step0(options.stage);
+    },
 
+    update: function(app) {
+      var t = Math.floor(app.ticker.frame * 0.1) % 4;
+      var s = "downloading";
+      t.times(function() { s += "." });
+      s.paddingRight("downloading".length + 3, " ");
+      this.label.text = s;
+    },
+
+    step0: function(stageName) {
       var loader = phina.asset.AssetLoader();
       loader.load({
         json: { "stage": "./asset/stage/" + stageName + ".json" }
@@ -2296,15 +2419,7 @@ phina.namespace(function() {
         this.step1();
       }.bind(this));
 
-      this.label.text = "step0";
-    },
-
-    update: function(app) {
-      var t = Math.floor(app.ticker.frame * 0.1) % 4;
-      var s = "downloading";
-      t.times(function() { s += "." });
-      s.paddingRight("downloading".length + 3, " ");
-      // this.label.text = s;
+      // this.label.text = "step0";
     },
 
     step1: function() {
@@ -2326,7 +2441,7 @@ phina.namespace(function() {
         this.step2(stageData);
       }.bind(this));
 
-      this.label.text = "step1";
+      // this.label.text = "step1";
     },
 
     step2: function(stageData) {
@@ -2352,7 +2467,7 @@ phina.namespace(function() {
         this.step3(stageData);
       }.bind(this));
 
-      this.label.text = "step2";
+      // this.label.text = "step2";
     },
 
     step3: function(stageData) {
@@ -2385,19 +2500,23 @@ phina.namespace(function() {
           }
         }
       });
-      
+
       var loader = phina.asset.AssetLoader();
       loader.load({
         xml: xmls,
       });
       loader.on("load", function() {
-        this.label.tweener.clear().fadeOut(100);
-        this.bg1.tweener.fadeOut(500).call(function() {
-          this.app.popScene();
-        }.bind(this));
+        this.step4();
       }.bind(this));
 
-      this.label.text = "step3";
+      // this.label.text = "step3";
+    },
+
+    step4: function() {
+      this.label.tweener.clear().fadeOut(100);
+      this.bg1.tweener.fadeOut(500).call(function() {
+        this.app.popScene();
+      }.bind(this));
     },
 
   });

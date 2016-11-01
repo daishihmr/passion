@@ -30,7 +30,7 @@ phina.namespace(function() {
       this.frame += 1;
     },
 
-    startBgm: function(arg) {
+    startBgm: function() {
 
     },
 

@@ -99,16 +99,19 @@ phina.namespace(function() {
       this.waitTime = options.wait || 0;
       this.rot = options.rot || false;
 
-      this.on("damage", function(e) {
-        var shot = e.shot;
-        this.hp -= shot.power;
-        if (this.hp <= 0) {
-          this.flare("killed");
-        }
-      });
-      this.on("killed", function(e) {
-        this.remove();
-      });
+      if (!options.muteki) {
+        this.on("damaged", function(e) {
+          var shot = e.shot;
+          this.hp -= shot.power;
+          if (this.hp <= 0) {
+            this.flare("killed");
+          }
+        });
+
+        this.on("killed", function(e) {
+          this.remove();
+        });
+      }
 
       return this;
     },

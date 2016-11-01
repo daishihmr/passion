@@ -15,11 +15,11 @@ phina.namespace(function() {
             originY: 0,
           },
           bg1: {
-            className: "phina.display.RectangleShape",
+            className: "passion.UIFrame",
             arguments: {
               fill: "black",
               stroke: null,
-              width: SCREEN_WIDTH,
+              width: SCREEN_WIDTH * 0.9,
               height: SCREEN_HEIGHT * 0.1,
             },
             x: SCREEN_WIDTH * 0.5,
@@ -37,8 +37,18 @@ phina.namespace(function() {
         },
       });
 
-      var stageName = options.stage;
+      this.step0(options.stage);
+    },
 
+    update: function(app) {
+      var t = Math.floor(app.ticker.frame * 0.1) % 4;
+      var s = "downloading";
+      t.times(function() { s += "." });
+      s.paddingRight("downloading".length + 3, " ");
+      this.label.text = s;
+    },
+
+    step0: function(stageName) {
       var loader = phina.asset.AssetLoader();
       loader.load({
         json: { "stage": "./asset/stage/" + stageName + ".json" }
@@ -48,15 +58,7 @@ phina.namespace(function() {
         this.step1();
       }.bind(this));
 
-      this.label.text = "step0";
-    },
-
-    update: function(app) {
-      var t = Math.floor(app.ticker.frame * 0.1) % 4;
-      var s = "downloading";
-      t.times(function() { s += "." });
-      s.paddingRight("downloading".length + 3, " ");
-      // this.label.text = s;
+      // this.label.text = "step0";
     },
 
     step1: function() {
@@ -78,7 +80,7 @@ phina.namespace(function() {
         this.step2(stageData);
       }.bind(this));
 
-      this.label.text = "step1";
+      // this.label.text = "step1";
     },
 
     step2: function(stageData) {
@@ -104,7 +106,7 @@ phina.namespace(function() {
         this.step3(stageData);
       }.bind(this));
 
-      this.label.text = "step2";
+      // this.label.text = "step2";
     },
 
     step3: function(stageData) {
@@ -137,19 +139,23 @@ phina.namespace(function() {
           }
         }
       });
-      
+
       var loader = phina.asset.AssetLoader();
       loader.load({
         xml: xmls,
       });
       loader.on("load", function() {
-        this.label.tweener.clear().fadeOut(100);
-        this.bg1.tweener.fadeOut(500).call(function() {
-          this.app.popScene();
-        }.bind(this));
+        this.step4();
       }.bind(this));
 
-      this.label.text = "step3";
+      // this.label.text = "step3";
+    },
+
+    step4: function() {
+      this.label.tweener.clear().fadeOut(100);
+      this.bg1.tweener.fadeOut(500).call(function() {
+        this.app.popScene();
+      }.bind(this));
     },
 
   });
