@@ -6,16 +6,14 @@ phina.namespace(function() {
     x: 0,
     y: 0,
 
-    glLayer: null,
     drawer: null,
     objName: null,
     spawnOptions: null,
 
     genPerFrame: 0,
 
-    init: function(glLayer, drawer, objName, spawnOptions) {
+    init: function(drawer, objName, spawnOptions) {
       this.superInit();
-      this.glLayer = glLayer;
       this.drawer = drawer;
       this.objName = objName;
       this.spawnOptions = spawnOptions;
@@ -29,7 +27,7 @@ phina.namespace(function() {
             x: this.x,
             y: this.y,
           }));
-          p.addChildTo(this.glLayer);
+          this.flare("spawnParticle", { particle: p });
         } else {
           break;
         }

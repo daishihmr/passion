@@ -15,6 +15,9 @@ phina.main(function() {
   phina.display.Label.defaults.fontFamily = "main";
   phina.display.Label.defaults.fill = "white";
 
+  phina.asset.SoundManager.volume = 0.05;
+  phina.asset.SoundManager.musicVolume = 0.05;
+
   var app = passion.Application();
   if (location.hostname == "localhost") {
     app.enableStats();
@@ -90,6 +93,7 @@ phina.namespace(function() {
               },
               sound: {
                 "home": "./asset/sound/nc136160.mp3",
+                "shot": "./asset/sound/sen_ge_kijuu01.mp3",
               },
             };
           default:
@@ -702,13 +706,10 @@ phina.namespace(function() {
             this.attackRunner.update();
           }
         }
-        // this.flare("everyframe");
       });
     },
 
     spawn: function(options) {
-      // console.log("enemy spawn", options);
-
       passion.Sprite.prototype.spawn.call(this, options);
       this.hp = options.hp || 0;
       this.hitRadius = options.hitRadius || 24;
@@ -739,6 +740,7 @@ phina.namespace(function() {
         });
 
         this.on("killed", function(e) {
+          this.status = 3;
           this.remove();
         });
       }
@@ -753,6 +755,7 @@ phina.namespace(function() {
 
   });
 });
+
 
 phina.namespace(function() {
 
@@ -892,16 +895,14 @@ phina.namespace(function() {
     x: 0,
     y: 0,
 
-    glLayer: null,
     drawer: null,
     objName: null,
     spawnOptions: null,
 
     genPerFrame: 0,
 
-    init: function(glLayer, drawer, objName, spawnOptions) {
+    init: function(drawer, objName, spawnOptions) {
       this.superInit();
-      this.glLayer = glLayer;
       this.drawer = drawer;
       this.objName = objName;
       this.spawnOptions = spawnOptions;
@@ -915,7 +916,7 @@ phina.namespace(function() {
             x: this.x,
             y: this.y,
           }));
-          p.addChildTo(this.glLayer);
+          this.flare("spawnParticle", { particle: p });
         } else {
           break;
         }
@@ -1140,45 +1141,49 @@ phina.namespace(function() {
 });
 
 phina.namespace(function() {
-  
+
   var SPEED = 20;
-  
+
   phina.define("passion.Shot", {
     superClass: "passion.Sprite",
-    
+
     bx: 0,
     by: 0,
     power: 0,
-    
+    age: 0,
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("enterframe", function(e) {
         this.bx = this.x;
         this.by = this.y;
         this.controll(e.app);
+        this.age += 1;
       });
     },
-    
-    controll: function(app) {},
-    
-    onhit: function(e) {
-      this.remove();
+
+    spawn: function(options) {
+      passion.Sprite.prototype.spawn.call(this, options);
+      this.age = 0;
+      return this;
     },
+
+    controll: function(app) {},
   });
 
   phina.define("passion.NormalShot", {
     superClass: "passion.Shot",
-    
+
     _static: {
       heatByShot: 6,
       fireCount: 3,
     },
-    
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.power = 1;
     },
-    
+
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
         x: player.x + [-1, 1, 0][index] * 10,
@@ -1197,28 +1202,32 @@ phina.namespace(function() {
       });
       return this;
     },
-    
+
     controll: function(app) {
       this.y -= SPEED;
       if (this.y < GAME_AREA_HEIGHT * -0.1) {
         this.remove();
       }
     },
+
+    onhit: function(e) {
+      this.remove();
+    },
   });
 
   phina.define("passion.WideShot", {
     superClass: "passion.Shot",
-    
+
     _static: {
       heatByShot: 6,
       fireCount: 3,
     },
-    
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.power = 1;
     },
-    
+
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
         x: player.x + [-1, 1, 0][index] * 20,
@@ -1235,18 +1244,22 @@ phina.namespace(function() {
         blue: 1.0,
         alpha: 0.8,
       });
-      
+
       this.dx = Math.cos(this.rotation) * SPEED;
       this.dy = Math.sin(this.rotation) * SPEED;
       return this;
     },
-    
+
     controll: function(app) {
       this.x += this.dx;
       this.y += this.dy;
       if (this.y < GAME_AREA_HEIGHT * -0.1 || this.x < GAME_AREA_WIDTH * -0.1 || GAME_AREA_WIDTH * 1.1 < this.x) {
         this.remove();
       }
+    },
+
+    onhit: function(e) {
+      this.remove();
     },
   });
 
@@ -2045,7 +2058,7 @@ phina.namespace(function() {
     },
 
     startBgm: function() {
-
+      // phina.asset.SoundManager.playMusic("bgm", 0, true);
     },
 
     stopBgm: function() {},
@@ -2197,21 +2210,26 @@ phina.namespace(function() {
       glLayer.shotDrawer.addObjType("shot", {
         className: shotClassName,
         texture: "bullets.png",
-        count: 50,
+        count: 9,
       });
+      var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
       var ShotClass = phina.using(shotClassName);
       player.heatByShot = ShotClass.heatByShot;
       var shots = this.shots;
       player.on("fireShot", function(e) {
-        for (var i = 0; i < ShotClass.fireCount; i++) {
-          var s = glLayer.shotDrawer.get("shot");
-          if (s) {
-            s.spawn(this, i).addChildTo(glLayer);
-            shots.push(s);
+        if (shotPool.length >= ShotClass.fireCount) {
+          for (var i = 0; i < ShotClass.fireCount; i++) {
+            var s = glLayer.shotDrawer.get("shot");
+            if (s) {
+              s.spawn(this, i).addChildTo(glLayer);
+              shots.push(s);
+            }
           }
+          // TODO 効果音
+          phina.asset.SoundManager.play("shot");
         }
       });
-      glLayer.shotDrawer.objParameters["shot"].pool.forEach(function(shot) {
+      shotPool.forEach(function(shot) {
         shot.on("removed", function() {
           var effect = glLayer.topEffectDrawer.get("bullets_erase");
           if (effect) {

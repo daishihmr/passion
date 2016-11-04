@@ -72,13 +72,10 @@ phina.namespace(function() {
             this.attackRunner.update();
           }
         }
-        // this.flare("everyframe");
       });
     },
 
     spawn: function(options) {
-      // console.log("enemy spawn", options);
-
       passion.Sprite.prototype.spawn.call(this, options);
       this.hp = options.hp || 0;
       this.hitRadius = options.hitRadius || 24;
@@ -109,6 +106,7 @@ phina.namespace(function() {
         });
 
         this.on("killed", function(e) {
+          this.status = 3;
           this.remove();
         });
       }

@@ -25,6 +25,7 @@ phina.namespace(function() {
               },
               sound: {
                 "home": "./asset/sound/nc136160.mp3",
+                "shot": "./asset/sound/sen_ge_kijuu01.mp3",
               },
             };
           default:

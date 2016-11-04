@@ -78,21 +78,26 @@ phina.namespace(function() {
       glLayer.shotDrawer.addObjType("shot", {
         className: shotClassName,
         texture: "bullets.png",
-        count: 50,
+        count: 9,
       });
+      var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
       var ShotClass = phina.using(shotClassName);
       player.heatByShot = ShotClass.heatByShot;
       var shots = this.shots;
       player.on("fireShot", function(e) {
-        for (var i = 0; i < ShotClass.fireCount; i++) {
-          var s = glLayer.shotDrawer.get("shot");
-          if (s) {
-            s.spawn(this, i).addChildTo(glLayer);
-            shots.push(s);
+        if (shotPool.length >= ShotClass.fireCount) {
+          for (var i = 0; i < ShotClass.fireCount; i++) {
+            var s = glLayer.shotDrawer.get("shot");
+            if (s) {
+              s.spawn(this, i).addChildTo(glLayer);
+              shots.push(s);
+            }
           }
+          // TODO 効果音
+          phina.asset.SoundManager.play("shot");
         }
       });
-      glLayer.shotDrawer.objParameters["shot"].pool.forEach(function(shot) {
+      shotPool.forEach(function(shot) {
         shot.on("removed", function() {
           var effect = glLayer.topEffectDrawer.get("bullets_erase");
           if (effect) {

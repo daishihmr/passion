@@ -1,43 +1,47 @@
 phina.namespace(function() {
-  
+
   var SPEED = 20;
-  
+
   phina.define("passion.Shot", {
     superClass: "passion.Sprite",
-    
+
     bx: 0,
     by: 0,
     power: 0,
-    
+    age: 0,
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("enterframe", function(e) {
         this.bx = this.x;
         this.by = this.y;
         this.controll(e.app);
+        this.age += 1;
       });
     },
-    
-    controll: function(app) {},
-    
-    onhit: function(e) {
-      this.remove();
+
+    spawn: function(options) {
+      passion.Sprite.prototype.spawn.call(this, options);
+      this.age = 0;
+      return this;
     },
+
+    controll: function(app) {},
   });
 
   phina.define("passion.NormalShot", {
     superClass: "passion.Shot",
-    
+
     _static: {
       heatByShot: 6,
       fireCount: 3,
     },
-    
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.power = 1;
     },
-    
+
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
         x: player.x + [-1, 1, 0][index] * 10,
@@ -56,28 +60,32 @@ phina.namespace(function() {
       });
       return this;
     },
-    
+
     controll: function(app) {
       this.y -= SPEED;
       if (this.y < GAME_AREA_HEIGHT * -0.1) {
         this.remove();
       }
     },
+
+    onhit: function(e) {
+      this.remove();
+    },
   });
 
   phina.define("passion.WideShot", {
     superClass: "passion.Shot",
-    
+
     _static: {
       heatByShot: 6,
       fireCount: 3,
     },
-    
+
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.power = 1;
     },
-    
+
     spawn: function(player, index) {
       passion.Shot.prototype.spawn.call(this, {
         x: player.x + [-1, 1, 0][index] * 20,
@@ -94,18 +102,22 @@ phina.namespace(function() {
         blue: 1.0,
         alpha: 0.8,
       });
-      
+
       this.dx = Math.cos(this.rotation) * SPEED;
       this.dy = Math.sin(this.rotation) * SPEED;
       return this;
     },
-    
+
     controll: function(app) {
       this.x += this.dx;
       this.y += this.dy;
       if (this.y < GAME_AREA_HEIGHT * -0.1 || this.x < GAME_AREA_WIDTH * -0.1 || GAME_AREA_WIDTH * 1.1 < this.x) {
         this.remove();
       }
+    },
+
+    onhit: function(e) {
+      this.remove();
     },
   });
 

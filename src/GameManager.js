@@ -31,7 +31,7 @@ phina.namespace(function() {
     },
 
     startBgm: function() {
-
+      // phina.asset.SoundManager.playMusic("bgm", 0, true);
     },
 
     stopBgm: function() {},

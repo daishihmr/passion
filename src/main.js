@@ -15,6 +15,9 @@ phina.main(function() {
   phina.display.Label.defaults.fontFamily = "main";
   phina.display.Label.defaults.fill = "white";
 
+  phina.asset.SoundManager.volume = 0.05;
+  phina.asset.SoundManager.musicVolume = 0.05;
+
   var app = passion.Application();
   if (location.hostname == "localhost") {
     app.enableStats();
