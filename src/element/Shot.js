@@ -33,8 +33,10 @@ phina.namespace(function() {
     superClass: "passion.Shot",
 
     _static: {
+      count: 9,
       heatByShot: 6,
       fireCount: 3,
+      additiveBlending: false,
     },
 
     init: function(id, instanceData, instanceStride) {
@@ -77,8 +79,10 @@ phina.namespace(function() {
     superClass: "passion.Shot",
 
     _static: {
+      count: 9,
       heatByShot: 6,
       fireCount: 3,
+      additiveBlending: false,
     },
 
     init: function(id, instanceData, instanceStride) {

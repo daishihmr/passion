@@ -74,14 +74,15 @@ phina.namespace(function() {
       var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.WideShot";
+      var shotClassName = "passion.NormalShot";
+      var ShotClass = phina.using(shotClassName);
       glLayer.shotDrawer.addObjType("shot", {
         className: shotClassName,
         texture: "bullets.png",
-        count: 9,
+        additiveBlending: ShotClass.additiveBlending,
+        count: ShotClass.count,
       });
       var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
-      var ShotClass = phina.using(shotClassName);
       player.heatByShot = ShotClass.heatByShot;
       var shots = this.shots;
       player.on("fireShot", function(e) {
