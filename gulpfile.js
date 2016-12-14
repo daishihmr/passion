@@ -53,15 +53,21 @@ gulp.task("lib", function() {
 });
 
 gulp.task("watch", function() {
-  var srcs = sourceFiles("./src").concat(["./bulletml-src/*"]);
+  var srcs = sourceFiles("./src").concat(["./attack-src/*", "./motion-src/*"]);
   gulp.watch(srcs, ["concat", "pug"]);
 });
 
 gulp.task("pug", function() {
-  gulp.src("./bulletml-src/*.pug")
+  gulp.src("./attack-src/*.pug")
     .pipe(pug())
     .pipe(rename({
       extname: ".xml"
     }))
-    .pipe(gulp.dest("./asset/bulletml"));
+    .pipe(gulp.dest("./asset/attack"));
+  gulp.src("./motion-src/*.pug")
+    .pipe(pug())
+    .pipe(rename({
+      extname: ".xml"
+    }))
+    .pipe(gulp.dest("./asset/motion"));
 });

@@ -19,7 +19,7 @@ phina.main(function() {
   phina.asset.SoundManager.musicVolume = 0.05;
 
   var app = passion.Application();
-  if (location.hostname == "localhost") {
+  if (location.hostname == "localhost" || location.hostname == "private.dev7.jp") {
     app.enableStats();
   }
   app.run();

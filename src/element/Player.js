@@ -16,8 +16,8 @@ phina.namespace(function() {
         player.on("enterframe", function(e) {
           if (e.app.ticker.frame % 2 !== 0) return;
 
-          var hex1 = glLayer.effectDrawer.get("effect");
-          var hex2 = glLayer.effectDrawer.get("effect");
+          var hex1 = glLayer.effectDrawer.get("particle");
+          var hex2 = glLayer.effectDrawer.get("particle");
           var options = {
             x: player.x - 8,
             y: player.y + 15,
@@ -55,7 +55,7 @@ phina.namespace(function() {
           }
         });
 
-        var aura = glLayer.effectDrawer.get("effect");
+        var aura = glLayer.effectDrawer.get("particle");
         aura.spawn({
           x: player.x,
           y: player.y,
@@ -76,7 +76,7 @@ phina.namespace(function() {
           this.y = player.y;
         });
 
-        var centerMarker = glLayer.topEffectDrawer.get("effect");
+        var centerMarker = glLayer.topEffectDrawer.get("particle");
         centerMarker.spawn({
           x: player.x,
           y: player.y,

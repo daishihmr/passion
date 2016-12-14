@@ -10,7 +10,7 @@
   "hitRadius": 48,
   "hp": 20,
   "motion": "middle",
-  "attack": "simple",
+  "attack": "test",
   "red": 1.5,
   "green": 1.5,
   "blue": 1.5

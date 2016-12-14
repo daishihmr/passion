@@ -69,11 +69,16 @@ phina.namespace(function() {
       stageData.enemies.forEach(function(enemy) {
         enemies[enemy + ".enemy"] = "./asset/enemy/" + enemy + ".json";
       });
+      
+      var sounds = {};
+      stageData.bgm.forEach(function(b, idx) {
+        sounds["bgm" + idx] = "./asset/sound/" + b.bgm + ".mp3";
+      });
 
       var loader = phina.asset.AssetLoader();
       loader.load({
         json: enemies,
-        sound: { "bgm": "./asset/sound/" + stageData.bgm + ".mp3" },
+        sound: sounds,
         image: { "bg": "./asset/image/" + stageData.bg + ".png" },
       });
       loader.on("load", function() {
@@ -117,25 +122,25 @@ phina.namespace(function() {
         })
         .forEach(function(enemyData) {
           if (enemyData.motion) {
-            xmls[enemyData.motion] = "./asset/bulletml/" + enemyData.motion + ".xml";
+            xmls["motion/" + enemyData.motion] = "./asset/motion/" + enemyData.motion + ".xml";
           }
           if (enemyData.attack) {
-            xmls[enemyData.attack] = "./asset/bulletml/" + enemyData.attack + ".xml";
+            xmls["attack/" + enemyData.attack] = "./asset/attack/" + enemyData.attack + ".xml";
           }
         });
       stageData.timeline.forEach(function(task) {
         if (task.arguments.motion) {
-          xmls[task.arguments.motion] = "./asset/bulletml/" + task.arguments.motion + ".xml";
+          xmls["motion/" + task.arguments.motion] = "./asset/motion/" + task.arguments.motion + ".xml";
         }
         if (task.arguments.attack) {
-          xmls[task.arguments.attack] = "./asset/bulletml/" + task.arguments.attack + ".xml";
+          xmls["attack/" + task.arguments.attack] = "./asset/attack/" + task.arguments.attack + ".xml";
         }
         if (task.arguments.enemy) {
           if (task.arguments.enemy.motion) {
-            xmls[task.arguments.enemy.motion] = "./asset/bulletml/" + task.arguments.enemy.motion + ".xml";
+            xmls["motion/" + task.arguments.enemy.motion] = "./asset/motion/" + task.arguments.enemy.motion + ".xml";
           }
           if (task.arguments.enemy.attack) {
-            xmls[task.arguments.enemy.attack] = "./asset/bulletml/" + task.arguments.enemy.attack + ".xml";
+            xmls["attack/" + task.arguments.enemy.attack] = "./asset/attack/" + task.arguments.enemy.attack + ".xml";
           }
         }
       });

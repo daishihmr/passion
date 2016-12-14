@@ -121,8 +121,8 @@ phina.namespace(function() {
       // padding: 0.05,
       padding: 0.01,
       // quality: 0.5,
-      quality: 0.75,
-      // quality: 1.0,
+      // quality: 0.75,
+      quality: 1.0,
     },
   });
 

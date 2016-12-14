@@ -10,7 +10,7 @@
   "hitRadius": 18,
   "hp": 2,
   "motion": "heli2",
-  "attack": "simple",
+  "attack": "test",
   "red": 1.5,
   "green": 1.5,
   "blue": 1.5

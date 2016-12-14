@@ -10,11 +10,15 @@
     "m1",
     "boss1"
   ],
-  "bgm": "nc140053",
+  "bgm": [{
+    "bgm": "nc140053",
+    "loopStart": 0,
+    "loopEnd": 0
+  }],
   "bg": "bg",
   "timeline": [{
     "type": "startBgm",
-    "arguments": { "bgm": "bgm1" }
+    "arguments": { "bgm": 0 }
   }, {
     "type": "wait",
     "arguments": { "time": 40 }

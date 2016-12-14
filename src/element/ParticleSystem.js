@@ -1,7 +1,7 @@
 phina.namespace(function() {
 
   phina.define("passion.ParticleEmitter", {
-    superClass: "phina.display.Element",
+    superClass: "phina.app.Element",
 
     x: 0,
     y: 0,
@@ -12,8 +12,9 @@ phina.namespace(function() {
 
     genPerFrame: 0,
 
-    init: function(drawer, objName, spawnOptions) {
+    init: function(glLayer, drawer, objName, spawnOptions) {
       this.superInit();
+      this.glLayer = glLayer;
       this.drawer = drawer;
       this.objName = objName;
       this.spawnOptions = spawnOptions;
@@ -21,13 +22,15 @@ phina.namespace(function() {
 
     update: function(app) {
       for (var i = 0; i < this.genPerFrame; i++) {
-        var p = this.drawer.get(this.objName);
-        if (p) {
-          p.spawn({}.$extend(this.spawnOptions, {
-            x: this.x,
-            y: this.y,
-          }));
-          this.flare("spawnParticle", { particle: p });
+        var particle = this.drawer.get(this.objName);
+        if (particle) {
+          particle
+            .spawn({}.$extend(this.spawnOptions, {
+              x: this.x,
+              y: this.y,
+            }))
+            .addChildTo(this.glLayer);
+          this.flare("spawnParticle", { particle: particle });
         } else {
           break;
         }
@@ -41,7 +44,7 @@ phina.namespace(function() {
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("removed", function() {
-        this.clear("enterframe");
+        // this.clear("enterframe");
         this.tweener.clear();
       });
     },

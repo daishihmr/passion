@@ -49,7 +49,7 @@ phina.namespace(function() {
       var gameManager = this.gameManager;
       var glLayer = this.glLayer;
 
-      glLayer.effectDrawer.addObjType("effect", {
+      glLayer.effectDrawer.addObjType("particle", {
         texture: "texture0.png",
         additiveBlending: true,
         count: 200,
@@ -59,9 +59,11 @@ phina.namespace(function() {
         texture: "bullets_erase.png",
         count: 200,
       });
-      glLayer.topEffectDrawer.addObjType("effect", {
+      glLayer.topEffectDrawer.addObjType("particle", {
+        className: "passion.Particle",
         texture: "texture0.png",
-        count: 2,
+        count: 200,
+        additiveBlending: true,
       });
 
       // 背景
@@ -182,6 +184,14 @@ phina.namespace(function() {
         this.gameManager.update(app);
         this._hitTest();
       }
+      
+      if (app.ticker.frame % 10 === 0) {
+        this.flare("spawnParticle", {
+          className: "passion.ExplosionLarge",
+          x: Math.randint(0, GAME_AREA_WIDTH),
+          y: Math.randint(0, GAME_AREA_HEIGHT),
+        });
+      }
     },
 
     _hitTest: function() {
@@ -242,6 +252,14 @@ phina.namespace(function() {
       item.addChildTo(this.glLayer);
       this.items.push(item);
     },
+    
+    onspawnParticle: function(e) {
+      var EmitterClass = phina.using(e.className);
+      var emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);
+      emitter.x = e.x;
+      emitter.y = e.y;
+      emitter.addChildTo(this.glLayer);
+    }
 
   });
 });

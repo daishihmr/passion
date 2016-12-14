@@ -81,12 +81,12 @@ phina.namespace(function() {
       this.hitRadius = options.hitRadius || 24;
 
       if (options.motion) {
-        this.motionRunner = passion.Danmaku.createRunner(options.motion);
+        this.motionRunner = passion.Danmaku.createRunner("motion/" + options.motion);
         this.motionRunner.x = this.x;
         this.motionRunner.y = this.y;
       }
       if (options.attack) {
-        this.attackRunner = passion.Danmaku.createRunner(options.attack);
+        this.attackRunner = passion.Danmaku.createRunner("attack/" + options.attack);
         this.attackRunner.x = this.x;
         this.attackRunner.y = this.y;
       }

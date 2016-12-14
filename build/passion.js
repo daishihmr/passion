@@ -19,7 +19,7 @@ phina.main(function() {
   phina.asset.SoundManager.musicVolume = 0.05;
 
   var app = passion.Application();
-  if (location.hostname == "localhost") {
+  if (location.hostname == "localhost" || location.hostname == "private.dev7.jp") {
     app.enableStats();
   }
   app.run();
@@ -388,7 +388,7 @@ phina.namespace(function() {
     instanceData: null,
 
     pool: null,
-    _count: 300,
+    _count: 3000,
 
     init: function(gl, ext, w, h) {
       this.superInit(gl, ext);
@@ -715,12 +715,12 @@ phina.namespace(function() {
       this.hitRadius = options.hitRadius || 24;
 
       if (options.motion) {
-        this.motionRunner = passion.Danmaku.createRunner(options.motion);
+        this.motionRunner = passion.Danmaku.createRunner("motion/" + options.motion);
         this.motionRunner.x = this.x;
         this.motionRunner.y = this.y;
       }
       if (options.attack) {
-        this.attackRunner = passion.Danmaku.createRunner(options.attack);
+        this.attackRunner = passion.Danmaku.createRunner("attack/" + options.attack);
         this.attackRunner.x = this.x;
         this.attackRunner.y = this.y;
       }
@@ -756,6 +756,147 @@ phina.namespace(function() {
   });
 });
 
+phina.namespace(function() {
+  
+  phina.define("passion.EnemyExp", {
+    superClass: "phina.app.Element",
+    
+    enemy: null,
+    
+    init: function(enemy) {
+      this.superInit();
+      this.enemy = enemy;
+      this.enemy.status = 3;
+      this.enemy.motionRunner = null;
+      this.enemy.attackRunner = null;
+    },
+
+  });
+});
+phina.namespace(function() {
+  
+  phina.define("passion.EnemyExpSmall", {
+    superClass: "passion.EnemyExp",
+    
+    init: function(enemy) {
+      this.superInit(enemy);
+    },
+    
+    update: function(app) {
+      
+    },
+
+  });
+});
+phina.namespace(function() {
+
+  phina.define("passion.ExplosionLarge", {
+    superClass: "passion.ParticleEmitter",
+
+    init: function(glLayer, drawer) {
+      this.superInit(glLayer, drawer, "particle", {
+        frameX: 7 / 8,
+        frameY: 0 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 1.0,
+        green: 0.8,
+        blue: 0.2,
+        alpha: 0.8,
+        scaleX: 10,
+        scaleY: 10,
+      });
+      
+      this.tweener
+        .clear()
+        .set({
+          genPerFrame: 5,
+        })
+        .to({
+          genPerFrame: 0,
+        }, 100)
+        .call(function() {
+          this.remove();
+        }.bind(this));
+    },
+    
+    onspawnParticle: function(e) {
+      var p = e.particle;
+      var dir = Math.random() * Math.PI * 2;
+      var dst = Math.randint(2, 25);
+      p.tweener
+        .clear()
+        .to({
+          x: p.x + Math.cos(dir) * dst,
+          y: p.y + Math.sin(dir) * dst,
+          scaleX: 50,
+          scaleY: 50,
+          green: 0.0,
+          blue: 0.0,
+          alpha: 0
+        }, 400)
+        .call(function() {
+          this.remove();
+        }.bind(p));
+    },
+
+  });
+});
+
+phina.namespace(function() {
+
+  phina.define("passion.ExplosionSmall", {
+    superClass: "passion.ParticleEmitter",
+
+    init: function(glLayer, drawer) {
+      this.superInit(glLayer, drawer, "particle", {
+        frameX: 7 / 8,
+        frameY: 0 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 1.0,
+        green: 0.8,
+        blue: 0.2,
+        alpha: 0.8,
+        scaleX: 10,
+        scaleY: 10,
+      });
+      
+      this.tweener
+        .clear()
+        .set({
+          genPerFrame: 5,
+        })
+        .to({
+          genPerFrame: 0,
+        }, 100)
+        .call(function() {
+          this.remove();
+        }.bind(this));
+    },
+    
+    onspawnParticle: function(e) {
+      var p = e.particle;
+      var dir = Math.random() * Math.PI * 2;
+      var dst = Math.randint(2, 25);
+      p.tweener
+        .clear()
+        .to({
+          x: p.x + Math.cos(dir) * dst,
+          y: p.y + Math.sin(dir) * dst,
+          scaleX: 50,
+          scaleY: 50,
+          green: 0.0,
+          blue: 0.0,
+          alpha: 0
+        }, 400)
+        .call(function() {
+          this.remove();
+        }.bind(p));
+    },
+
+  });
+});
 
 phina.namespace(function() {
 
@@ -880,8 +1021,8 @@ phina.namespace(function() {
       // padding: 0.05,
       padding: 0.01,
       // quality: 0.5,
-      quality: 0.75,
-      // quality: 1.0,
+      // quality: 0.75,
+      quality: 1.0,
     },
   });
 
@@ -890,7 +1031,7 @@ phina.namespace(function() {
 phina.namespace(function() {
 
   phina.define("passion.ParticleEmitter", {
-    superClass: "phina.display.Element",
+    superClass: "phina.app.Element",
 
     x: 0,
     y: 0,
@@ -901,8 +1042,9 @@ phina.namespace(function() {
 
     genPerFrame: 0,
 
-    init: function(drawer, objName, spawnOptions) {
+    init: function(glLayer, drawer, objName, spawnOptions) {
       this.superInit();
+      this.glLayer = glLayer;
       this.drawer = drawer;
       this.objName = objName;
       this.spawnOptions = spawnOptions;
@@ -910,13 +1052,15 @@ phina.namespace(function() {
 
     update: function(app) {
       for (var i = 0; i < this.genPerFrame; i++) {
-        var p = this.drawer.get(this.objName);
-        if (p) {
-          p.spawn({}.$extend(this.spawnOptions, {
-            x: this.x,
-            y: this.y,
-          }));
-          this.flare("spawnParticle", { particle: p });
+        var particle = this.drawer.get(this.objName);
+        if (particle) {
+          particle
+            .spawn({}.$extend(this.spawnOptions, {
+              x: this.x,
+              y: this.y,
+            }))
+            .addChildTo(this.glLayer);
+          this.flare("spawnParticle", { particle: particle });
         } else {
           break;
         }
@@ -930,7 +1074,7 @@ phina.namespace(function() {
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
       this.on("removed", function() {
-        this.clear("enterframe");
+        // this.clear("enterframe");
         this.tweener.clear();
       });
     },
@@ -957,8 +1101,8 @@ phina.namespace(function() {
         player.on("enterframe", function(e) {
           if (e.app.ticker.frame % 2 !== 0) return;
 
-          var hex1 = glLayer.effectDrawer.get("effect");
-          var hex2 = glLayer.effectDrawer.get("effect");
+          var hex1 = glLayer.effectDrawer.get("particle");
+          var hex2 = glLayer.effectDrawer.get("particle");
           var options = {
             x: player.x - 8,
             y: player.y + 15,
@@ -996,7 +1140,7 @@ phina.namespace(function() {
           }
         });
 
-        var aura = glLayer.effectDrawer.get("effect");
+        var aura = glLayer.effectDrawer.get("particle");
         aura.spawn({
           x: player.x,
           y: player.y,
@@ -1017,7 +1161,7 @@ phina.namespace(function() {
           this.y = player.y;
         });
 
-        var centerMarker = glLayer.topEffectDrawer.get("effect");
+        var centerMarker = glLayer.topEffectDrawer.get("particle");
         centerMarker.spawn({
           x: player.x,
           y: player.y,
@@ -1433,22 +1577,22 @@ phina.namespace(function() {
     id: -1,
     instanceData: null,
 
-    visible: true,
+    // visible: true,
 
-    x: 0,
-    y: 0,
-    rotation: 0,
-    scale: 0,
+    // x: 0,
+    // y: 0,
+    // rotation: 0,
+    // scale: 0,
 
-    frameX: 0,
-    frameY: 0,
-    frameW: 0,
-    frameH: 0,
+    // frameX: 0,
+    // frameY: 0,
+    // frameW: 0,
+    // frameH: 0,
 
-    red: 1.0,
-    green: 1.0,
-    blue: 1.0,
-    alpha: 1.0,
+    // red: 1.0,
+    // green: 1.0,
+    // blue: 1.0,
+    // alpha: 1.0,
 
     age: 0,
 
@@ -1477,8 +1621,8 @@ phina.namespace(function() {
         alpha: 1.0,
       });
 
-      var index = this.index;
-      var instanceData = this.instanceData;
+      // var index = this.index;
+      // var instanceData = this.instanceData;
 
       this.visible = options.visible;
       this.x = options.x;
@@ -1495,20 +1639,20 @@ phina.namespace(function() {
       this.blue = options.blue;
       this.alpha = options.alpha;
 
-      instanceData[index + 0] = this.visible ? 1 : 0; // visible
-      instanceData[index + 1] = this.x; // position.x
-      instanceData[index + 2] = this.y; // position.y
-      instanceData[index + 3] = this.rotation; // rotation
-      instanceData[index + 4] = this.scaleX; // scale
-      instanceData[index + 5] = this.scaleY; // scale
-      instanceData[index + 6] = this.frameX; // frame.x
-      instanceData[index + 7] = this.frameY; // frame.y
-      instanceData[index + 8] = this.frameW; // frame.w
-      instanceData[index + 9] = this.frameH; // frame.h
-      instanceData[index + 10] = this.red; // red
-      instanceData[index + 11] = this.green; // green
-      instanceData[index + 12] = this.blue; // blue
-      instanceData[index + 13] = this.alpha; // alpha
+      // instanceData[index + 0] = this.visible ? 1 : 0; // visible
+      // instanceData[index + 1] = this.x; // position.x
+      // instanceData[index + 2] = this.y; // position.y
+      // instanceData[index + 3] = this.rotation; // rotation
+      // instanceData[index + 4] = this.scaleX; // scale
+      // instanceData[index + 5] = this.scaleY; // scale
+      // instanceData[index + 6] = this.frameX; // frame.x
+      // instanceData[index + 7] = this.frameY; // frame.y
+      // instanceData[index + 8] = this.frameW; // frame.w
+      // instanceData[index + 9] = this.frameH; // frame.h
+      // instanceData[index + 10] = this.red; // red
+      // instanceData[index + 11] = this.green; // green
+      // instanceData[index + 12] = this.blue; // blue
+      // instanceData[index + 13] = this.alpha; // alpha
 
       this.age = 0;
 
@@ -1516,30 +1660,145 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      var index = this.index;
-      var instanceData = this.instanceData;
+      // var index = this.index;
+      // var instanceData = this.instanceData;
 
-      instanceData[index + 0] = this.visible ? 1 : 0; // visible
-      instanceData[index + 1] = this.x; // position.x
-      instanceData[index + 2] = this.y; // position.y
-      instanceData[index + 3] = this.rotation; // rotation
-      instanceData[index + 4] = this.scaleX; // scale
-      instanceData[index + 5] = this.scaleY; // scale
-      instanceData[index + 6] = this.frameX; // frame.x
-      instanceData[index + 7] = this.frameY; // frame.y
-      instanceData[index + 8] = this.frameW; // frame.w
-      instanceData[index + 9] = this.frameH; // frame.h
-      instanceData[index + 10] = this.red; // red
-      instanceData[index + 11] = this.green; // green
-      instanceData[index + 12] = this.blue; // blue
-      instanceData[index + 13] = this.alpha; // alpha
+      // instanceData[index + 0] = this.visible ? 1 : 0; // visible
+      // instanceData[index + 1] = this.x; // position.x
+      // instanceData[index + 2] = this.y; // position.y
+      // instanceData[index + 3] = this.rotation; // rotation
+      // instanceData[index + 4] = this.scaleX; // scale
+      // instanceData[index + 5] = this.scaleY; // scale
+      // instanceData[index + 6] = this.frameX; // frame.x
+      // instanceData[index + 7] = this.frameY; // frame.y
+      // instanceData[index + 8] = this.frameW; // frame.w
+      // instanceData[index + 9] = this.frameH; // frame.h
+      // instanceData[index + 10] = this.red; // red
+      // instanceData[index + 11] = this.green; // green
+      // instanceData[index + 12] = this.blue; // blue
+      // instanceData[index + 13] = this.alpha; // alpha
 
       this.age += 1;
     },
 
     onremoved: function() {
       this.visible = false;
-      this.instanceData[this.index + 0] = 0;
+      // this.instanceData[this.index + 0] = 0;
+    },
+
+    _accessor: {
+      visible: {
+        get: function() {
+          return this.instanceData[this.index + 0] === 1;
+        },
+        set: function(v) {
+          this.instanceData[this.index + 0] = v ? 1 : 0;
+        },
+      },
+      x: {
+        get: function() {
+          return this.instanceData[this.index + 1];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 1] = v;
+        },
+      },
+      y: {
+        get: function() {
+          return this.instanceData[this.index + 2];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 2] = v;
+        },
+      },
+      rotation: {
+        get: function() {
+          return this.instanceData[this.index + 3];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 3] = v;
+        },
+      },
+      scaleX: {
+        get: function() {
+          return this.instanceData[this.index + 4];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 4] = v;
+        },
+      },
+      scaleY: {
+        get: function() {
+          return this.instanceData[this.index + 5];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 5] = v;
+        },
+      },
+      frameX: {
+        get: function() {
+          return this.instanceData[this.index + 6];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 6] = v;
+        },
+      },
+      frameY: {
+        get: function() {
+          return this.instanceData[this.index + 7];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 7] = v;
+        },
+      },
+      frameW: {
+        get: function() {
+          return this.instanceData[this.index + 8];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 8] = v;
+        },
+      },
+      frameH: {
+        get: function() {
+          return this.instanceData[this.index + 9];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 9] = v;
+        },
+      },
+      red: {
+        get: function() {
+          return this.instanceData[this.index + 10];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 10] = v;
+        },
+      },
+      green: {
+        get: function() {
+          return this.instanceData[this.index + 11];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 11] = v;
+        },
+      },
+      blue: {
+        get: function() {
+          return this.instanceData[this.index + 12];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 12] = v;
+        },
+      },
+      alpha: {
+        get: function() {
+          return this.instanceData[this.index + 13];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 13] = v;
+        },
+      },
     },
   });
 
@@ -2061,8 +2320,12 @@ phina.namespace(function() {
       this.frame += 1;
     },
 
-    startBgm: function() {
-      // phina.asset.SoundManager.playMusic("bgm", 0, true);
+    startBgm: function(arg) {
+      var music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
+      if (arg.loopEnd) {
+        music.loopStart = arg.loopStart;
+        music.loopEnd = arg.loopEnd;
+      }
     },
 
     stopBgm: function() {},
@@ -2185,7 +2448,7 @@ phina.namespace(function() {
       var gameManager = this.gameManager;
       var glLayer = this.glLayer;
 
-      glLayer.effectDrawer.addObjType("effect", {
+      glLayer.effectDrawer.addObjType("particle", {
         texture: "texture0.png",
         additiveBlending: true,
         count: 200,
@@ -2195,9 +2458,11 @@ phina.namespace(function() {
         texture: "bullets_erase.png",
         count: 200,
       });
-      glLayer.topEffectDrawer.addObjType("effect", {
+      glLayer.topEffectDrawer.addObjType("particle", {
+        className: "passion.Particle",
         texture: "texture0.png",
-        count: 2,
+        count: 200,
+        additiveBlending: true,
       });
 
       // 背景
@@ -2318,6 +2583,14 @@ phina.namespace(function() {
         this.gameManager.update(app);
         this._hitTest();
       }
+      
+      if (app.ticker.frame % 10 === 0) {
+        this.flare("spawnParticle", {
+          className: "passion.ExplosionLarge",
+          x: Math.randint(0, GAME_AREA_WIDTH),
+          y: Math.randint(0, GAME_AREA_HEIGHT),
+        });
+      }
     },
 
     _hitTest: function() {
@@ -2378,6 +2651,14 @@ phina.namespace(function() {
       item.addChildTo(this.glLayer);
       this.items.push(item);
     },
+    
+    onspawnParticle: function(e) {
+      var EmitterClass = phina.using(e.className);
+      var emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);
+      emitter.x = e.x;
+      emitter.y = e.y;
+      emitter.addChildTo(this.glLayer);
+    }
 
   });
 });
@@ -2453,11 +2734,16 @@ phina.namespace(function() {
       stageData.enemies.forEach(function(enemy) {
         enemies[enemy + ".enemy"] = "./asset/enemy/" + enemy + ".json";
       });
+      
+      var sounds = {};
+      stageData.bgm.forEach(function(b, idx) {
+        sounds["bgm" + idx] = "./asset/sound/" + b.bgm + ".mp3";
+      });
 
       var loader = phina.asset.AssetLoader();
       loader.load({
         json: enemies,
-        sound: { "bgm": "./asset/sound/" + stageData.bgm + ".mp3" },
+        sound: sounds,
         image: { "bg": "./asset/image/" + stageData.bg + ".png" },
       });
       loader.on("load", function() {
@@ -2501,25 +2787,25 @@ phina.namespace(function() {
         })
         .forEach(function(enemyData) {
           if (enemyData.motion) {
-            xmls[enemyData.motion] = "./asset/bulletml/" + enemyData.motion + ".xml";
+            xmls["motion/" + enemyData.motion] = "./asset/motion/" + enemyData.motion + ".xml";
           }
           if (enemyData.attack) {
-            xmls[enemyData.attack] = "./asset/bulletml/" + enemyData.attack + ".xml";
+            xmls["attack/" + enemyData.attack] = "./asset/attack/" + enemyData.attack + ".xml";
           }
         });
       stageData.timeline.forEach(function(task) {
         if (task.arguments.motion) {
-          xmls[task.arguments.motion] = "./asset/bulletml/" + task.arguments.motion + ".xml";
+          xmls["motion/" + task.arguments.motion] = "./asset/motion/" + task.arguments.motion + ".xml";
         }
         if (task.arguments.attack) {
-          xmls[task.arguments.attack] = "./asset/bulletml/" + task.arguments.attack + ".xml";
+          xmls["attack/" + task.arguments.attack] = "./asset/attack/" + task.arguments.attack + ".xml";
         }
         if (task.arguments.enemy) {
           if (task.arguments.enemy.motion) {
-            xmls[task.arguments.enemy.motion] = "./asset/bulletml/" + task.arguments.enemy.motion + ".xml";
+            xmls["motion/" + task.arguments.enemy.motion] = "./asset/motion/" + task.arguments.enemy.motion + ".xml";
           }
           if (task.arguments.enemy.attack) {
-            xmls[task.arguments.enemy.attack] = "./asset/bulletml/" + task.arguments.enemy.attack + ".xml";
+            xmls["attack/" + task.arguments.enemy.attack] = "./asset/attack/" + task.arguments.enemy.attack + ".xml";
           }
         }
       });

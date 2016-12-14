@@ -30,8 +30,12 @@ phina.namespace(function() {
       this.frame += 1;
     },
 
-    startBgm: function() {
-      // phina.asset.SoundManager.playMusic("bgm", 0, true);
+    startBgm: function(arg) {
+      var music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
+      if (arg.loopEnd) {
+        music.loopStart = arg.loopStart;
+        music.loopEnd = arg.loopEnd;
+      }
     },
 
     stopBgm: function() {},
