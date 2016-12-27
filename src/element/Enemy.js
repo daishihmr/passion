@@ -19,6 +19,7 @@ phina.namespace(function() {
     hp: 0,
     active: false,
     hitRadius: 0,
+    expType: null,
 
     waitTime: 0,
 
@@ -76,9 +77,10 @@ phina.namespace(function() {
     },
 
     spawn: function(options) {
-      passion.Sprite.prototype.spawn.call(this, options);
+      this.superMethod("spawn", options);
       this.hp = options.hp || 0;
       this.hitRadius = options.hitRadius || 24;
+      this.expType = options.expType || "small";
 
       if (options.motion) {
         this.motionRunner = passion.Danmaku.createRunner("motion/" + options.motion);
@@ -107,11 +109,24 @@ phina.namespace(function() {
 
         this.on("killed", function(e) {
           this.status = 3;
-          this.remove();
         });
       }
 
       return this;
+    },
+
+    playKilledEffect: function(gameScene) {
+      switch (this.expType) {
+        case "small":
+        default:
+          this.remove();
+          gameScene.flare("spawnParticle", {
+            className: "passion.ExplosionSmall",
+            x: this.x,
+            y: this.y,
+          });
+          break;
+      }
     },
 
     isHit: function(target) {

@@ -121,7 +121,7 @@ phina.namespace(function() {
     },
 
     spawn: function(spec) {
-      passion.Sprite.prototype.spawn.call(this, {
+      this.superMethod("spawn", {
         x: GAME_AREA_WIDTH * 0.5,
         y: GAME_AREA_HEIGHT * 0.9,
         scaleX: 64,

@@ -3,11 +3,6 @@ phina.namespace(function() {
   phina.define("passion.GLLayer", {
     superClass: "phina.display.Layer",
 
-    static: {
-      GL_CANVAS: null,
-      GL: null,
-    },
-
     renderChildBySelf: true,
     ready: false,
 
@@ -117,6 +112,8 @@ phina.namespace(function() {
     },
 
     _static: {
+      GL_CANVAS: null,
+      GL: null,
       // padding: 0.1,
       // padding: 0.05,
       padding: 0.01,

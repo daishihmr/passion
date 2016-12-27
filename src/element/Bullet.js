@@ -5,7 +5,6 @@ phina.namespace(function() {
 
     id: -1,
     instanceData: null,
-    runner: null,
 
     x: 0,
     y: 0,
@@ -16,6 +15,8 @@ phina.namespace(function() {
     _active: false,
 
     radius: 20,
+    
+    _bulletRunning: null,
 
     init: function(id, instanceData, instanceStride) {
       this.superInit();
@@ -25,30 +26,19 @@ phina.namespace(function() {
       this.index = id * instanceStride;
     },
 
-    spawn: function(runner, option) {
+    spawn: function(option) {
       var instanceData = this.instanceData;
       var index = this.index;
 
-      this.runner = runner;
-      this.x = runner.x;
-      this.y = runner.y;
       this.age = 0;
-      instanceData[index + 0] = this.x;
-      instanceData[index + 1] = this.y;
-      instanceData[index + 2] = runner.direction; // rotation
-      instanceData[index + 3] = option.scale; // scale
-      instanceData[index + 4] = option.type % 8; // frame.x
-      instanceData[index + 5] = ~~(option.type / 8); // frame.y
-      instanceData[index + 6] = 1; // visible
-      instanceData[index + 7] = 1; // brightness
-      instanceData[index + 8] = 0.2 + ~~(option.type / 8) % 2; // auraColor.r
-      instanceData[index + 9] = 0.2 + 0; // auraColor.g
-      instanceData[index + 10] = 0.2 + ~~(option.type / 8) % 2 + 1; // auraColor.b
-
-      var self = this;
-      runner.onVanish = function() {
-        self.remove();
-      };
+      this.scale = option.scale;
+      this.frameX = option.type % 8;
+      this.frameY = ~~(option.type / 8);
+      this.visible = true;
+      this.brightness = 1;
+      this.auraRed = 0.2 + ~~(option.type / 8) % 2;
+      this.auraGreen = 0.2 + 0;
+      this.auraBlue = 0.2 + ~~(option.type / 8) % 2 + 1;
 
       return this;
     },
@@ -66,26 +56,20 @@ phina.namespace(function() {
     },
 
     onremoved: function() {
-      this.instanceData[this.index + 6] = 0;
+      this.visible = false;
+      this.bulletRunning.setRunner(null);
     },
 
     update: function(app) {
       var instanceData = this.instanceData;
       var index = this.index;
-      var runner = this.runner;
 
-      runner.update();
-      this.x = runner.x;
-      this.y = runner.y;
+      this.brightness = 1.5 + Math.sin(this.age * 0.2) * 0.6;
 
       if (this.x < -50 || GAME_AREA_WIDTH + 50 < this.x || this.y < -50 || GAME_AREA_HEIGHT + 50 < this.y) {
         this.remove();
         return;
       }
-
-      instanceData[index + 0] = this.x;
-      instanceData[index + 1] = this.y;
-      instanceData[index + 7] = 1.5 + Math.sin(this.age * 0.2) * 0.6;
 
       this.age += 1;
     },
@@ -96,6 +80,54 @@ phina.namespace(function() {
     },
 
     _accessor: {
+      x: {
+        get: function() {
+          return this.instanceData[this.index + 0];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 0] = v;
+        },
+      },
+      y: {
+        get: function() {
+          return this.instanceData[this.index + 1];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 1] = v;
+        },
+      },
+      rotation: {
+        get: function() {
+          return this.instanceData[this.index + 2];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 2] = v;
+        },
+      },
+      scale: {
+        get: function() {
+          return this.instanceData[this.index + 3];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 3] = v;
+        },
+      },
+      frameX: {
+        get: function() {
+          return this.instanceData[this.index + 4];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 4] = v;
+        },
+      },
+      frameY: {
+        get: function() {
+          return this.instanceData[this.index + 5];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 5] = v;
+        },
+      },
       visible: {
         get: function() {
           return this.instanceData[this.index + 6] == 1;
@@ -104,7 +136,46 @@ phina.namespace(function() {
           this.instanceData[this.index + 6] = v ? 1 : 0;
         },
       },
+      brightness: {
+        get: function() {
+          return this.instanceData[this.index + 7];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 7] = v;
+        },
+      },
+      auraRed: {
+        get: function() {
+          return this.instanceData[this.index + 8];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 8] = v;
+        },
+      },
+      auraGreen: {
+        get: function() {
+          return this.instanceData[this.index + 9];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 9] = v;
+        },
+      },
+      auraBlue: {
+        get: function() {
+          return this.instanceData[this.index + 10];
+        },
+        set: function(v) {
+          this.instanceData[this.index + 10] = v;
+        },
+      },
     },
+  });
+
+  passion.Bullet.prototype.getter("bulletRunning", function() {
+    if (!this._bulletRunning) {
+      this._bulletRunning = passion.BulletRunning().attachTo(this);
+    }
+    return this._bulletRunning;
   });
 
 });

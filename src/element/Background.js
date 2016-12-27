@@ -45,7 +45,7 @@ phina.namespace(function() {
 
     spawn: function(height) {
       this.height = height;
-      passion.Sprite.prototype.spawn.call(this, {
+      this.superMethod("spawn", {
         scaleX: GAME_AREA_WIDTH,
         scaleY: this.height,
         frameX: 0,

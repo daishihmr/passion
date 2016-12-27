@@ -21,10 +21,11 @@ phina.namespace(function() {
           createNewBullet: function(runner, spec) {
             var bullet = bulletDrawer.get();
             if (bullet) {
-              bullet.spawn(runner, {
+              bullet.spawn({
                 type: spec.type,
                 scale: 32,
               });
+              bullet.bulletRunning.setRunner(runner);
               gameScene.flare("spawnBullet", { bullet: bullet });
             }
           },

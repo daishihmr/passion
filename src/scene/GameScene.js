@@ -5,7 +5,7 @@ phina.namespace(function() {
 
     random: null,
     gameManager: null,
-    started: false,
+    status: -1,
 
     shots: null,
     enemies: null,
@@ -19,6 +19,8 @@ phina.namespace(function() {
       var stageData = phina.asset.AssetManager.get("json", "stage").data;
 
       this.random = phina.util.Random(12345);
+      bulletml.Walker.random = this.random.random;
+
       this.gameManager = passion.GameManager(stageData);
 
       this.fromJSON({
@@ -92,7 +94,7 @@ phina.namespace(function() {
           for (var i = 0; i < ShotClass.fireCount; i++) {
             var s = glLayer.shotDrawer.get("shot");
             if (s) {
-              s.spawn(this, i).addChildTo(glLayer);
+              s.spawn(this, i, self).addChildTo(glLayer);
               shots.push(s);
             }
           }
@@ -135,6 +137,9 @@ phina.namespace(function() {
             enemy.on("removed", function() {
               enemies.erase(this);
             });
+            enemy.on("killed", function() {
+              this.playKilledEffect(self);
+            });
           });
         });
       var enemies = this.enemies;
@@ -175,22 +180,16 @@ phina.namespace(function() {
       });
 
       this.uiLayer.showReadyGo(function() {
-        this.started = true;
-      }.bind(this));
+        self.status = 0;
+      });
     },
 
     update: function(app) {
-      if (this.started) {
-        this.gameManager.update(app);
-        this._hitTest();
-      }
-      
-      if (app.ticker.frame % 10 === 0) {
-        this.flare("spawnParticle", {
-          className: "passion.ExplosionLarge",
-          x: Math.randint(0, GAME_AREA_WIDTH),
-          y: Math.randint(0, GAME_AREA_HEIGHT),
-        });
+      switch (this.status) {
+        case 0:
+          this.gameManager.update(app);
+          this._hitTest();
+          break;
       }
     },
 
@@ -252,7 +251,7 @@ phina.namespace(function() {
       item.addChildTo(this.glLayer);
       this.items.push(item);
     },
-    
+
     onspawnParticle: function(e) {
       var EmitterClass = phina.using(e.className);
       var emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);

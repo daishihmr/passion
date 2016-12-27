@@ -31,11 +31,11 @@ phina.namespace(function() {
     },
 
     startBgm: function(arg) {
-      var music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
-      if (arg.loopEnd) {
-        music.loopStart = arg.loopStart;
-        music.loopEnd = arg.loopEnd;
-      }
+      // var music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
+      // if (arg.loopEnd) {
+      //   music.loopStart = arg.loopStart;
+      //   music.loopEnd = arg.loopEnd;
+      // }
     },
 
     stopBgm: function() {},

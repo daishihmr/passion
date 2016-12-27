@@ -6,24 +6,9 @@ phina.namespace(function() {
     id: -1,
     instanceData: null,
 
-    // visible: true,
-
-    // x: 0,
-    // y: 0,
-    // rotation: 0,
-    // scale: 0,
-
-    // frameX: 0,
-    // frameY: 0,
-    // frameW: 0,
-    // frameH: 0,
-
-    // red: 1.0,
-    // green: 1.0,
-    // blue: 1.0,
-    // alpha: 1.0,
-
     age: 0,
+
+    _bulletRunning: null,
 
     init: function(id, instanceData, instanceStride) {
       this.superInit();
@@ -68,51 +53,18 @@ phina.namespace(function() {
       this.blue = options.blue;
       this.alpha = options.alpha;
 
-      // instanceData[index + 0] = this.visible ? 1 : 0; // visible
-      // instanceData[index + 1] = this.x; // position.x
-      // instanceData[index + 2] = this.y; // position.y
-      // instanceData[index + 3] = this.rotation; // rotation
-      // instanceData[index + 4] = this.scaleX; // scale
-      // instanceData[index + 5] = this.scaleY; // scale
-      // instanceData[index + 6] = this.frameX; // frame.x
-      // instanceData[index + 7] = this.frameY; // frame.y
-      // instanceData[index + 8] = this.frameW; // frame.w
-      // instanceData[index + 9] = this.frameH; // frame.h
-      // instanceData[index + 10] = this.red; // red
-      // instanceData[index + 11] = this.green; // green
-      // instanceData[index + 12] = this.blue; // blue
-      // instanceData[index + 13] = this.alpha; // alpha
-
       this.age = 0;
 
       return this;
     },
 
     update: function(app) {
-      // var index = this.index;
-      // var instanceData = this.instanceData;
-
-      // instanceData[index + 0] = this.visible ? 1 : 0; // visible
-      // instanceData[index + 1] = this.x; // position.x
-      // instanceData[index + 2] = this.y; // position.y
-      // instanceData[index + 3] = this.rotation; // rotation
-      // instanceData[index + 4] = this.scaleX; // scale
-      // instanceData[index + 5] = this.scaleY; // scale
-      // instanceData[index + 6] = this.frameX; // frame.x
-      // instanceData[index + 7] = this.frameY; // frame.y
-      // instanceData[index + 8] = this.frameW; // frame.w
-      // instanceData[index + 9] = this.frameH; // frame.h
-      // instanceData[index + 10] = this.red; // red
-      // instanceData[index + 11] = this.green; // green
-      // instanceData[index + 12] = this.blue; // blue
-      // instanceData[index + 13] = this.alpha; // alpha
-
       this.age += 1;
     },
 
     onremoved: function() {
       this.visible = false;
-      // this.instanceData[this.index + 0] = 0;
+      this.bulletRunning.setRunner(null);
     },
 
     _accessor: {
@@ -229,6 +181,13 @@ phina.namespace(function() {
         },
       },
     },
+  });
+
+  passion.Sprite.prototype.getter("bulletRunning", function() {
+    if (!this._bulletRunning) {
+      this._bulletRunning = passion.BulletRunning().attachTo(this);
+    }
+    return this._bulletRunning;
   });
 
 });

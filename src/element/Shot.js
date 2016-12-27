@@ -21,7 +21,7 @@ phina.namespace(function() {
     },
 
     spawn: function(options) {
-      passion.Sprite.prototype.spawn.call(this, options);
+      this.superMethod("spawn", options);
       this.age = 0;
       return this;
     },
@@ -44,8 +44,8 @@ phina.namespace(function() {
       this.power = 1;
     },
 
-    spawn: function(player, index) {
-      passion.Shot.prototype.spawn.call(this, {
+    spawn: function(player, index, gameScene) {
+      this.superMethod("spawn", {
         x: player.x + [-1, 1, 0][index] * 10,
         y: player.y - 30,
         rotation: -Math.PI * 0.5,
@@ -90,8 +90,8 @@ phina.namespace(function() {
       this.power = 1;
     },
 
-    spawn: function(player, index) {
-      passion.Shot.prototype.spawn.call(this, {
+    spawn: function(player, index, gameScene) {
+      this.superMethod("spawn", {
         x: player.x + [-1, 1, 0][index] * 20,
         y: player.y,
         rotation: -Math.PI * 0.5 + [-1, 1, 0][index] * 0.2,

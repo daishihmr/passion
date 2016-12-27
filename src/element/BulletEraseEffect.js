@@ -16,7 +16,7 @@ phina.namespace(function() {
     },
 
     spawn: function(options) {
-      passion.Sprite.prototype.spawn.call(this, {}.$extend(options, {
+      this.superMethod("spawn", {}.$extend(options, {
         frameX: 0,
         frameY: 1 / 8,
         frameW: 1 / 8,

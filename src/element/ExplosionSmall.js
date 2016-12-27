@@ -24,7 +24,7 @@ phina.namespace(function() {
         })
         .to({
           genPerFrame: 0,
-        }, 100)
+        }, 150)
         .call(function() {
           this.remove();
         }.bind(this));
@@ -44,7 +44,7 @@ phina.namespace(function() {
           green: 0.0,
           blue: 0.0,
           alpha: 0
-        }, 400)
+        }, 400, "easeOutQuad")
         .call(function() {
           this.remove();
         }.bind(p));
