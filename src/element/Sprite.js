@@ -65,6 +65,7 @@ phina.namespace(function() {
     onremoved: function() {
       this.visible = false;
       this.bulletRunning.setRunner(null);
+      this.tweener.clear();
     },
 
     _accessor: {

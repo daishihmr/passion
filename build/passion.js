@@ -1108,13 +1108,52 @@ phina.namespace(function() {
       GL: null,
       // padding: 0.1,
       // padding: 0.05,
-      padding: 0.01,
+      padding: 0.02,
       // quality: 0.5,
       // quality: 0.75,
       quality: 1.0,
     },
   });
 
+});
+
+phina.namespace(function() {
+
+  var c = 0;
+
+  phina.define("passion.LaserMazzleFlash", {
+    superClass: "passion.Sprite",
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+    },
+
+    spawn: function(options) {
+      this.superMethod("spawn", options.$safe({
+        frameX: 5 / 8,
+        frameY: 1 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        scaleX: 160 + Math.sin(c) * 30,
+        scaleY: 160 + Math.sin(c) * 30,
+        alpha: 0.1,
+        rotation: (-90).toRadian(),
+      }));
+      this.tweener
+        .clear()
+        .to({
+          alpha: 0
+        }, 300)
+        .call(function() {
+          this.remove();
+        }.bind(this));
+
+      c += 0.4;
+
+      return this;
+    },
+
+  });
 });
 
 phina.namespace(function() {
@@ -1319,7 +1358,7 @@ phina.namespace(function() {
         var p = app.pointer;
         var dp = p.deltaPosition;
 
-        if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
+        if (phina.isMobile() || p.getPointing()) {
           this.x += dp.x * 2;
           this.y += dp.y * 2;
           if (dp.x < 0) {
@@ -1375,7 +1414,74 @@ phina.namespace(function() {
 
 phina.namespace(function() {
 
-  var SPEED = 20;
+  var commonSetup = function(shotClassName, glLayer, player, shots, gameScene) {
+    var ShotClass = this;
+    glLayer.shotDrawer.addObjType("shot", {
+      className: shotClassName,
+      texture: ShotClass.texture || "bullets.png",
+      additiveBlending: ShotClass.additiveBlending || false,
+      count: ShotClass.count || 9,
+    });
+
+    // 着弾エフェクト
+    if (ShotClass.hitEffect) {
+      glLayer.topEffectDrawer.addObjType("hitEffect", ShotClass.hitEffect);
+    }
+
+    // 発射口エフェクト
+    if (ShotClass.mazzleFlashEffect) {
+      glLayer.effectDrawer.addObjType("mazzleFlashEffect", ShotClass.mazzleFlashEffect);
+    }
+
+    var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
+    player.heatByShot = ShotClass.heatByShot;
+    player.on("fireShot", function(e) {
+      if (shotPool.length >= ShotClass.fireCount) {
+        for (var i = 0; i < ShotClass.fireCount; i++) {
+          var s = glLayer.shotDrawer.get("shot");
+          if (s) {
+            s.spawn(this, i, gameScene).addChildTo(glLayer);
+            shots.push(s);
+          }
+        }
+        // TODO 効果音
+        // phina.asset.SoundManager.play("shot");
+      }
+    });
+
+    shotPool.forEach(function(shot) {
+      if (ShotClass.hitEffect) {
+        shot.on("hit", function() {
+          var effect = glLayer.topEffectDrawer.get("hitEffect");
+          if (effect) {
+            effect
+              .spawn({
+                x: this.x,
+                y: this.y,
+              })
+              .addChildTo(glLayer);
+          }
+        });
+      }
+      shot.on("removed", function() {
+        shots.erase(this);
+      });
+    });
+
+    if (ShotClass.mazzleFlashEffect) {
+      player.on("fireShot", function(e) {
+        var effect = glLayer.effectDrawer.get("mazzleFlashEffect");
+        if (effect) {
+          effect
+            .spawn({
+              x: this.x,
+              y: this.y - 30,
+            })
+            .addChildTo(glLayer);
+        }
+      });
+    }
+  };
 
   phina.define("passion.Shot", {
     superClass: "passion.Sprite",
@@ -1408,10 +1514,16 @@ phina.namespace(function() {
     superClass: "passion.Shot",
 
     _static: {
+      setup: commonSetup,
       count: 9,
-      heatByShot: 6,
+      heatByShot: 8,
       fireCount: 3,
       additiveBlending: false,
+      hitEffect: {
+        className: "passion.BulletEraseEffect",
+        texture: "bullets_erase.png",
+        count: 9,
+      },
     },
 
     init: function(id, instanceData, instanceStride) {
@@ -1422,7 +1534,7 @@ phina.namespace(function() {
     spawn: function(player, index, gameScene) {
       this.superMethod("spawn", {
         x: player.x + [-1, 1, 0][index] * 10,
-        y: player.y - 30,
+        y: player.y - 30 + [0, 0, -1][index] * 10,
         rotation: -Math.PI * 0.5,
         scaleX: 48,
         scaleY: 48,
@@ -1439,7 +1551,59 @@ phina.namespace(function() {
     },
 
     controll: function(app) {
-      this.y -= SPEED;
+      this.y -= 20;
+      if (this.y < GAME_AREA_HEIGHT * -0.1) {
+        this.remove();
+      }
+    },
+
+    onhit: function(e) {
+      this.remove();
+    },
+  });
+
+  phina.define("passion.NormalShot2", {
+    superClass: "passion.Shot",
+
+    _static: {
+      setup: commonSetup,
+      count: 18,
+      heatByShot: 8,
+      fireCount: 5,
+      additiveBlending: false,
+      hitEffect: {
+        className: "passion.BulletEraseEffect",
+        texture: "bullets_erase.png",
+        count: 18,
+      },
+    },
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
+    },
+
+    spawn: function(player, index, gameScene) {
+      this.superMethod("spawn", {
+        x: player.x + [-2, 2, -1, 1, 0][index] * 10,
+        y: player.y - 30 + [1, 1, 0, 0, -1][index] * 10,
+        rotation: -Math.PI * 0.5,
+        scaleX: 48,
+        scaleY: 48,
+        frameX: 1 / 8,
+        frameY: 1 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 1.0,
+        green: 1.0,
+        blue: 1.0,
+        alpha: 0.8,
+      });
+      return this;
+    },
+
+    controll: function(app) {
+      this.y -= 20;
       if (this.y < GAME_AREA_HEIGHT * -0.1) {
         this.remove();
       }
@@ -1454,10 +1618,16 @@ phina.namespace(function() {
     superClass: "passion.Shot",
 
     _static: {
+      setup: commonSetup,
       count: 9,
       heatByShot: 6,
       fireCount: 3,
       additiveBlending: false,
+      hitEffect: {
+        className: "passion.BulletEraseEffect",
+        texture: "bullets_erase.png",
+        count: 9,
+      },
     },
 
     init: function(id, instanceData, instanceStride) {
@@ -1482,8 +1652,8 @@ phina.namespace(function() {
         alpha: 0.8,
       });
 
-      this.dx = Math.cos(this.rotation) * SPEED;
-      this.dy = Math.sin(this.rotation) * SPEED;
+      this.dx = Math.cos(this.rotation) * 20;
+      this.dy = Math.sin(this.rotation) * 20;
       return this;
     },
 
@@ -1504,10 +1674,16 @@ phina.namespace(function() {
     superClass: "passion.Shot",
 
     _static: {
+      setup: commonSetup,
       count: 27,
       heatByShot: 6,
       fireCount: 9,
       additiveBlending: false,
+      hitEffect: {
+        className: "passion.BulletEraseEffect",
+        texture: "bullets_erase.png",
+        count: 27,
+      },
     },
 
     init: function(id, instanceData, instanceStride) {
@@ -1535,8 +1711,8 @@ phina.namespace(function() {
         alpha: 0.8,
       });
 
-      this.dx = Math.cos(this.rotation) * SPEED;
-      this.dy = Math.sin(this.rotation) * SPEED;
+      this.dx = Math.cos(this.rotation) * 20;
+      this.dy = Math.sin(this.rotation) * 20;
       return this;
     },
 
@@ -1557,11 +1733,18 @@ phina.namespace(function() {
     superClass: "passion.Shot",
 
     _static: {
-      count: 6,
-      heatByShot: 4,
+      setup: commonSetup,
+      count: 20,
+      heatByShot: 1,
       fireCount: 1,
       additiveBlending: true,
       texture: "effect.png",
+      mazzleFlashEffect: {
+        className: "passion.LaserMazzleFlash",
+        texture: "effect.png",
+        count: 20,
+        additiveBlending: true,
+      }
     },
 
     init: function(id, instanceData, instanceStride) {
@@ -1576,8 +1759,8 @@ phina.namespace(function() {
         x: player.x,
         y: player.y - 30,
         rotation: -Math.PI * 0.5,
-        scaleX: 192,
-        scaleY: 24,
+        scaleX: 84,
+        scaleY: 84,
         frameX: (f % 8) / 8,
         frameY: ~~(f / 8) / 8,
         frameW: 1 / 8,
@@ -1592,14 +1775,18 @@ phina.namespace(function() {
 
     controll: function(app) {
       this.x = this.player.x;
-      this.y -= SPEED;
+      this.y -= 30;
+      this.scaleX = Math.min(this.scaleY + 80, 250);
+      this.scaleY = Math.max(this.scaleY - 32, 16);
       if (this.y < GAME_AREA_HEIGHT * -0.1) {
         this.remove();
       }
     },
 
     onhit: function(e) {
-      this.remove();
+      if (e.enemy.hp > 0) {
+        this.remove();
+      }
     },
   });
 
@@ -1828,6 +2015,7 @@ phina.namespace(function() {
     onremoved: function() {
       this.visible = false;
       this.bulletRunning.setRunner(null);
+      this.tweener.clear();
     },
 
     _accessor: {
@@ -2676,7 +2864,7 @@ phina.namespace(function() {
 
     timeline: null,
 
-    init: function(stageData) {
+    init: function(stageData, random) {
       this.superInit();
       this.timeline = stageData.timeline;
       this.waitTo = -1;
@@ -2777,7 +2965,6 @@ phina.namespace(function() {
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
 
-    random: null,
     gameManager: null,
     status: -1,
 
@@ -2789,13 +2976,16 @@ phina.namespace(function() {
     init: function(options) {
       this.superInit(options);
 
-      var self = this;
+      var gameScene = this;
       var stageData = phina.asset.AssetManager.get("json", "stage").data;
 
-      this.random = phina.util.Random(12345);
-      bulletml.Walker.random = this.random.random;
+      var r = phina.util.Random(12345);
+      var randomFunc = function() {
+        return r.random();
+      };
+      bulletml.Walker.random = randomFunc;
 
-      this.gameManager = passion.GameManager(stageData);
+      this.gameManager = passion.GameManager(stageData, randomFunc);
 
       this.fromJSON({
         shots: [],
@@ -2830,7 +3020,7 @@ phina.namespace(function() {
         additiveBlending: true,
         count: 200,
       });
-      glLayer.topEffectDrawer.addObjType("bullets_erase", {
+      glLayer.topEffectDrawer.addObjType("BulletEraseEffect", {
         className: "passion.BulletEraseEffect",
         texture: "bullets_erase.png",
         count: 200,
@@ -2849,50 +3039,12 @@ phina.namespace(function() {
       var playerSpec = {
         hp: 100,
       };
-      var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
+      this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
       var shotClassName = "passion.Laser";
       var ShotClass = phina.using(shotClassName);
-      glLayer.shotDrawer.addObjType("shot", {
-        className: shotClassName,
-        texture: ShotClass.texture || "bullets.png",
-        additiveBlending: ShotClass.additiveBlending || false,
-        count: ShotClass.count || 9,
-      });
-      var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
-      player.heatByShot = ShotClass.heatByShot;
-      var shots = this.shots;
-      player.on("fireShot", function(e) {
-        if (shotPool.length >= ShotClass.fireCount) {
-          for (var i = 0; i < ShotClass.fireCount; i++) {
-            var s = glLayer.shotDrawer.get("shot");
-            if (s) {
-              s.spawn(this, i, self).addChildTo(glLayer);
-              shots.push(s);
-            }
-          }
-          // TODO 効果音
-          phina.asset.SoundManager.play("shot");
-        }
-      });
-      shotPool.forEach(function(shot) {
-        shot.on("hit", function() {
-          var effect = glLayer.topEffectDrawer.get("bullets_erase");
-          if (effect) {
-            effect
-              .spawn({
-                x: this.x,
-                y: this.y,
-                frameY: 1 / 8,
-              })
-              .addChildTo(glLayer);
-          }
-        });
-        shot.on("removed", function() {
-          shots.erase(this);
-        });
-      });
+      ShotClass.setup(shotClassName, glLayer, this.player, this.shots, gameScene);
 
       // 敵
       stageData.enemies
@@ -2914,7 +3066,7 @@ phina.namespace(function() {
               enemies.erase(this);
             });
             enemy.on("killed", function() {
-              this.playKilledEffect(self);
+              this.playKilledEffect(gameScene);
             });
           });
         });
@@ -2942,7 +3094,7 @@ phina.namespace(function() {
           bullets.erase(this);
         });
         bullet.on("erased", function() {
-          var effect = glLayer.topEffectDrawer.get("bullets_erase");
+          var effect = glLayer.topEffectDrawer.get("BulletEraseEffect");
           if (effect) {
             effect
               .spawn({
@@ -2956,7 +3108,7 @@ phina.namespace(function() {
       });
 
       this.uiLayer.showReadyGo(function() {
-        self.status = 0;
+        gameScene.status = 0;
       });
     },
 
@@ -2967,7 +3119,7 @@ phina.namespace(function() {
           this._hitTest();
           break;
       }
-      
+
       var kb = app.keyboardEx;
       var gp = app.gamepadManager.get();
       if (gp.leftPressing || kb.leftPressing) console.log("left" + Date.now());
@@ -2994,7 +3146,7 @@ phina.namespace(function() {
           var s = ss[j];
           if (e.isHit(s)) {
             e.flare("damaged", { shot: s });
-            s.flare("hit");
+            s.flare("hit", { enemy: e });
           }
         }
       }

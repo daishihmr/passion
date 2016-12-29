@@ -3,7 +3,6 @@ phina.namespace(function() {
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
 
-    random: null,
     gameManager: null,
     status: -1,
 
@@ -15,13 +14,16 @@ phina.namespace(function() {
     init: function(options) {
       this.superInit(options);
 
-      var self = this;
+      var gameScene = this;
       var stageData = phina.asset.AssetManager.get("json", "stage").data;
 
-      this.random = phina.util.Random(12345);
-      bulletml.Walker.random = this.random.random;
+      var r = phina.util.Random(12345);
+      var randomFunc = function() {
+        return r.random();
+      };
+      bulletml.Walker.random = randomFunc;
 
-      this.gameManager = passion.GameManager(stageData);
+      this.gameManager = passion.GameManager(stageData, randomFunc);
 
       this.fromJSON({
         shots: [],
@@ -56,7 +58,7 @@ phina.namespace(function() {
         additiveBlending: true,
         count: 200,
       });
-      glLayer.topEffectDrawer.addObjType("bullets_erase", {
+      glLayer.topEffectDrawer.addObjType("BulletEraseEffect", {
         className: "passion.BulletEraseEffect",
         texture: "bullets_erase.png",
         count: 200,
@@ -75,50 +77,12 @@ phina.namespace(function() {
       var playerSpec = {
         hp: 100,
       };
-      var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
+      this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
       var shotClassName = "passion.Laser";
       var ShotClass = phina.using(shotClassName);
-      glLayer.shotDrawer.addObjType("shot", {
-        className: shotClassName,
-        texture: ShotClass.texture || "bullets.png",
-        additiveBlending: ShotClass.additiveBlending || false,
-        count: ShotClass.count || 9,
-      });
-      var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
-      player.heatByShot = ShotClass.heatByShot;
-      var shots = this.shots;
-      player.on("fireShot", function(e) {
-        if (shotPool.length >= ShotClass.fireCount) {
-          for (var i = 0; i < ShotClass.fireCount; i++) {
-            var s = glLayer.shotDrawer.get("shot");
-            if (s) {
-              s.spawn(this, i, self).addChildTo(glLayer);
-              shots.push(s);
-            }
-          }
-          // TODO 効果音
-          phina.asset.SoundManager.play("shot");
-        }
-      });
-      shotPool.forEach(function(shot) {
-        shot.on("hit", function() {
-          var effect = glLayer.topEffectDrawer.get("bullets_erase");
-          if (effect) {
-            effect
-              .spawn({
-                x: this.x,
-                y: this.y,
-                frameY: 1 / 8,
-              })
-              .addChildTo(glLayer);
-          }
-        });
-        shot.on("removed", function() {
-          shots.erase(this);
-        });
-      });
+      ShotClass.setup(shotClassName, glLayer, this.player, this.shots, gameScene);
 
       // 敵
       stageData.enemies
@@ -140,7 +104,7 @@ phina.namespace(function() {
               enemies.erase(this);
             });
             enemy.on("killed", function() {
-              this.playKilledEffect(self);
+              this.playKilledEffect(gameScene);
             });
           });
         });
@@ -168,7 +132,7 @@ phina.namespace(function() {
           bullets.erase(this);
         });
         bullet.on("erased", function() {
-          var effect = glLayer.topEffectDrawer.get("bullets_erase");
+          var effect = glLayer.topEffectDrawer.get("BulletEraseEffect");
           if (effect) {
             effect
               .spawn({
@@ -182,7 +146,7 @@ phina.namespace(function() {
       });
 
       this.uiLayer.showReadyGo(function() {
-        self.status = 0;
+        gameScene.status = 0;
       });
     },
 
@@ -193,7 +157,7 @@ phina.namespace(function() {
           this._hitTest();
           break;
       }
-      
+
       var kb = app.keyboardEx;
       var gp = app.gamepadManager.get();
       if (gp.leftPressing || kb.leftPressing) console.log("left" + Date.now());
@@ -220,7 +184,7 @@ phina.namespace(function() {
           var s = ss[j];
           if (e.isHit(s)) {
             e.flare("damaged", { shot: s });
-            s.flare("hit");
+            s.flare("hit", { enemy: e });
           }
         }
       }

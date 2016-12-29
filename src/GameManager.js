@@ -11,7 +11,7 @@ phina.namespace(function() {
 
     timeline: null,
 
-    init: function(stageData) {
+    init: function(stageData, random) {
       this.superInit();
       this.timeline = stageData.timeline;
       this.waitTo = -1;

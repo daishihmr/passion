@@ -145,7 +145,7 @@ phina.namespace(function() {
         var p = app.pointer;
         var dp = p.deltaPosition;
 
-        if (phina.isMobile() || (!phina.isMobile() && p.getPointing())) {
+        if (phina.isMobile() || p.getPointing()) {
           this.x += dp.x * 2;
           this.y += dp.y * 2;
           if (dp.x < 0) {

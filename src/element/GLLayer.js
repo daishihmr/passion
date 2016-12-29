@@ -116,7 +116,7 @@ phina.namespace(function() {
       GL: null,
       // padding: 0.1,
       // padding: 0.05,
-      padding: 0.01,
+      padding: 0.02,
       // quality: 0.5,
       // quality: 0.75,
       quality: 1.0,
