@@ -22,7 +22,7 @@ phina.namespace(function() {
         this.waitTo = -1;
         var task = this.timeline.shift();
 
-        console.log("[task] " + this.frame + " " + task.type);
+        // console.log("[task] " + this.frame + " " + task.type);
 
         this[task.type](task.arguments);
       }

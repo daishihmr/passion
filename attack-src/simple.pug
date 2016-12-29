@@ -1,13 +1,13 @@
 bulletml
   action(label='top')
-    wait 90
+    wait 10
     repeat
       times Infinity
       action
         fire
           bulletRef(label='type1')
           direction 0
-        wait 50
+        wait 40
   bullet(label='type1', option='{"type":1}')
     speed 1
     action

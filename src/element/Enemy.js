@@ -17,7 +17,6 @@ phina.namespace(function() {
     status: -1,
 
     hp: 0,
-    active: false,
     hitRadius: 0,
     expType: null,
 
@@ -28,10 +27,22 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
+
+      this.on("spawned", function() {
+        this.status = 0;
+      });
+      this.on("activated", function() {
+        this.status = 1;
+      })
+      this.on("entered", function() {
+        this.status = 2;
+      });
+      this.on("killed", function(e) {
+        this.status = 3;
+      });
+
       this.on("removed", function() {
-        // this.clear("everyframe");
         this.clear("damaged");
-        this.clear("killed");
         this.tweener.clear();
         this.motionRunner = null;
         this.attackRunner = null;
@@ -42,12 +53,11 @@ phina.namespace(function() {
         if (this.status === 0) {
           this.waitTime -= 1;
           if (this.waitTime <= 0) {
-            this.status = 1;
+            this.flare("activated");
           }
-          return;
         } else if (this.status === 1) {
           if (this.hitRadius < this.x && this.x < GAME_AREA_WIDTH - this.hitRadius && this.hitRadius < this.y && this.y < GAME_AREA_HEIGHT - this.hitRadius) {
-            this.status = 2;
+            this.flare("entered");
           }
         } else if (this.status === 2 || this.status === 3) {
           if (this.x < -this.hitRadius || GAME_AREA_WIDTH + this.hitRadius < this.x || this.y < -this.hitRadius || GAME_AREA_HEIGHT + this.hitRadius < this.y) {
@@ -56,21 +66,26 @@ phina.namespace(function() {
           }
         }
 
-        if (this.motionRunner) {
-          this.bx = this.x;
-          this.by = this.y;
-          this.motionRunner.update();
-          this.x = this.motionRunner.x;
-          this.y = this.motionRunner.y;
-          if (this.rot) {
-            this.rotation = this.motionRunner.direction - Math.PI * 0.5;
+        if (0 < this.status && this.status < 3) {
+          if (this.motionRunner) {
+            this.bx = this.x;
+            this.by = this.y;
+            this.motionRunner.update();
+            this.x = this.motionRunner.x;
+            this.y = this.motionRunner.y;
+            if (this.rot) {
+              this.rotation = this.motionRunner.direction - Math.PI * 0.5;
+            }
           }
         }
-        if (!this.rot || this.y < passion.Danmaku.config.target.y) {
-          if (this.attackRunner) {
-            this.attackRunner.x = this.x;
-            this.attackRunner.y = this.y;
-            this.attackRunner.update();
+
+        if (this.status === 2) {
+          if (!this.rot || this.y < passion.Danmaku.config.target.y) {
+            if (this.attackRunner) {
+              this.attackRunner.x = this.x;
+              this.attackRunner.y = this.y;
+              this.attackRunner.update();
+            }
           }
         }
       });
@@ -94,7 +109,6 @@ phina.namespace(function() {
       }
 
       this.hp = options.hp;
-      this.status = 0;
       this.waitTime = options.wait || 0;
       this.rot = options.rot || false;
 
@@ -106,11 +120,9 @@ phina.namespace(function() {
             this.flare("killed");
           }
         });
-
-        this.on("killed", function(e) {
-          this.status = 3;
-        });
       }
+
+      this.flare("spawned");
 
       return this;
     },

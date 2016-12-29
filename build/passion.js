@@ -61,6 +61,30 @@ phina.namespace(function() {
       });
 
       this.fps = FPS;
+
+      this.keyboardEx = passion.Keyboard(document);
+      this.keyboardEx.on('keydown', function(e) {
+        this.currentScene && this.currentScene.flare('keydown', {
+          keyCode: e.keyCode,
+        });
+      }.bind(this));
+      this.keyboardEx.on('keyup', function(e) {
+        this.currentScene && this.currentScene.flare('keyup', {
+          keyCode: e.keyCode,
+        });
+      }.bind(this));
+      this.keyboardEx.on('keypress', function(e) {
+        this.currentScene && this.currentScene.flare('keypress', {
+          keyCode: e.keyCode,
+        });
+      }.bind(this));
+
+      this.gamepadManager = passion.GamepadManager();
+    },
+
+    update: function() {
+      this.keyboardEx.update();
+      this.gamepadManager.update();
     },
 
   });
@@ -82,6 +106,7 @@ phina.namespace(function() {
                 "bullets.png": "./asset/image/bullets.png",
                 "bullets_erase.png": "./asset/image/bullets_erase.png",
                 "texture0.png": "./asset/image/texture0.png",
+                "effect.png": "./asset/image/effect.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",
@@ -723,7 +748,6 @@ phina.namespace(function() {
     status: -1,
 
     hp: 0,
-    active: false,
     hitRadius: 0,
     expType: null,
 
@@ -734,10 +758,22 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
+
+      this.on("spawned", function() {
+        this.status = 0;
+      });
+      this.on("activated", function() {
+        this.status = 1;
+      })
+      this.on("entered", function() {
+        this.status = 2;
+      });
+      this.on("killed", function(e) {
+        this.status = 3;
+      });
+
       this.on("removed", function() {
-        // this.clear("everyframe");
         this.clear("damaged");
-        this.clear("killed");
         this.tweener.clear();
         this.motionRunner = null;
         this.attackRunner = null;
@@ -748,12 +784,11 @@ phina.namespace(function() {
         if (this.status === 0) {
           this.waitTime -= 1;
           if (this.waitTime <= 0) {
-            this.status = 1;
+            this.flare("activated");
           }
-          return;
         } else if (this.status === 1) {
           if (this.hitRadius < this.x && this.x < GAME_AREA_WIDTH - this.hitRadius && this.hitRadius < this.y && this.y < GAME_AREA_HEIGHT - this.hitRadius) {
-            this.status = 2;
+            this.flare("entered");
           }
         } else if (this.status === 2 || this.status === 3) {
           if (this.x < -this.hitRadius || GAME_AREA_WIDTH + this.hitRadius < this.x || this.y < -this.hitRadius || GAME_AREA_HEIGHT + this.hitRadius < this.y) {
@@ -762,21 +797,26 @@ phina.namespace(function() {
           }
         }
 
-        if (this.motionRunner) {
-          this.bx = this.x;
-          this.by = this.y;
-          this.motionRunner.update();
-          this.x = this.motionRunner.x;
-          this.y = this.motionRunner.y;
-          if (this.rot) {
-            this.rotation = this.motionRunner.direction - Math.PI * 0.5;
+        if (0 < this.status && this.status < 3) {
+          if (this.motionRunner) {
+            this.bx = this.x;
+            this.by = this.y;
+            this.motionRunner.update();
+            this.x = this.motionRunner.x;
+            this.y = this.motionRunner.y;
+            if (this.rot) {
+              this.rotation = this.motionRunner.direction - Math.PI * 0.5;
+            }
           }
         }
-        if (!this.rot || this.y < passion.Danmaku.config.target.y) {
-          if (this.attackRunner) {
-            this.attackRunner.x = this.x;
-            this.attackRunner.y = this.y;
-            this.attackRunner.update();
+
+        if (this.status === 2) {
+          if (!this.rot || this.y < passion.Danmaku.config.target.y) {
+            if (this.attackRunner) {
+              this.attackRunner.x = this.x;
+              this.attackRunner.y = this.y;
+              this.attackRunner.update();
+            }
           }
         }
       });
@@ -800,7 +840,6 @@ phina.namespace(function() {
       }
 
       this.hp = options.hp;
-      this.status = 0;
       this.waitTime = options.wait || 0;
       this.rot = options.rot || false;
 
@@ -812,11 +851,9 @@ phina.namespace(function() {
             this.flare("killed");
           }
         });
-
-        this.on("killed", function(e) {
-          this.status = 3;
-        });
       }
+
+      this.flare("spawned");
 
       return this;
     },
@@ -1454,6 +1491,109 @@ phina.namespace(function() {
       this.x += this.dx;
       this.y += this.dy;
       if (this.y < GAME_AREA_HEIGHT * -0.1 || this.x < GAME_AREA_WIDTH * -0.1 || GAME_AREA_WIDTH * 1.1 < this.x) {
+        this.remove();
+      }
+    },
+
+    onhit: function(e) {
+      this.remove();
+    },
+  });
+
+  phina.define("passion.WideShot2", {
+    superClass: "passion.Shot",
+
+    _static: {
+      count: 27,
+      heatByShot: 6,
+      fireCount: 9,
+      additiveBlending: false,
+    },
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
+    },
+
+    spawn: function(player, index, gameScene) {
+      var d = ~~(index / 3);
+      var i = index % 3;
+
+      this.superMethod("spawn", {
+        x: player.x + [-1, 1, 0][d] * 30 + [-1, 1, 0][i] * 10,
+        y: player.y,
+        rotation: -Math.PI * 0.5 + [-1, 1, 0][d] * 0.2,
+        scaleX: 48,
+        scaleY: 48,
+        frameX: 1 / 8,
+        frameY: 1 / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 1.0,
+        green: 1.0,
+        blue: 1.0,
+        alpha: 0.8,
+      });
+
+      this.dx = Math.cos(this.rotation) * SPEED;
+      this.dy = Math.sin(this.rotation) * SPEED;
+      return this;
+    },
+
+    controll: function(app) {
+      this.x += this.dx;
+      this.y += this.dy;
+      if (this.y < GAME_AREA_HEIGHT * -0.1 || this.x < GAME_AREA_WIDTH * -0.1 || GAME_AREA_WIDTH * 1.1 < this.x) {
+        this.remove();
+      }
+    },
+
+    onhit: function(e) {
+      this.remove();
+    },
+  });
+
+  phina.define("passion.Laser", {
+    superClass: "passion.Shot",
+
+    _static: {
+      count: 6,
+      heatByShot: 4,
+      fireCount: 1,
+      additiveBlending: true,
+      texture: "effect.png",
+    },
+
+    init: function(id, instanceData, instanceStride) {
+      this.superInit(id, instanceData, instanceStride);
+      this.power = 1;
+    },
+
+    spawn: function(player, index, gameScene) {
+      this.player = player;
+      var f = Math.randint(6, 8);
+      this.superMethod("spawn", {
+        x: player.x,
+        y: player.y - 30,
+        rotation: -Math.PI * 0.5,
+        scaleX: 192,
+        scaleY: 24,
+        frameX: (f % 8) / 8,
+        frameY: ~~(f / 8) / 8,
+        frameW: 1 / 8,
+        frameH: 1 / 8,
+        red: 1.0,
+        green: 1.0,
+        blue: 1.0,
+        alpha: 0.8,
+      });
+      return this;
+    },
+
+    controll: function(app) {
+      this.x = this.player.x;
+      this.y -= SPEED;
+      if (this.y < GAME_AREA_HEIGHT * -0.1) {
         this.remove();
       }
     },
@@ -2285,6 +2425,115 @@ phina.namespace(function() {
 
 phina.namespace(function() {
 
+  phina.define("passion.GamepadManager", {
+    superClass: "phina.input.GamepadManager",
+
+    init: function() {
+      this.superInit();
+    },
+
+    get: function(index) {
+      index = index || 0;
+
+      if (!this.gamepads[index]) {
+        this._created.push(index);
+        this.gamepads[index] = passion.Gamepad(index);
+      }
+
+      return this.gamepads[index];
+    },
+
+  });
+
+  phina.define("passion.Gamepad", {
+    superClass: "phina.input.Gamepad",
+
+    beforeStickX: 0,
+    beforeStickY: 0,
+
+    _leftCount: 0,
+    _rightCount: 0,
+    _upCount: 0,
+    _downCount: 0,
+
+    init: function(index) {
+      this.superInit(index);
+    },
+
+    _updateState: function(gamepad) {
+      this.superMethod("_updateState", gamepad);
+      this._updateEvery();
+    },
+    _updateStateEmpty: function() {
+      this.superMethod("_updateStateEmpty");
+      this._updateEvery();
+    },
+
+    _updateEvery: function() {
+      var stick = this.getStickDirection();
+
+      if (this.getKeyUp("left") || this.beforeStickX < -0.5 && -0.5 <= stick.x) {
+        this._leftCount = 0;
+      } else if (this.getKey("left") || stick.x < -0.5) {
+        this._leftCount += 1;
+      }
+      if (this.getKeyUp("right") || 0.5 < this.beforeStickX && stick.x <= 0.5) {
+        this._rightCount = 0;
+      } else if (this.getKey("right") || 0.5 < stick.x) {
+        this._rightCount += 1;
+      }
+      if (this.getKeyUp("up") || this.beforeStickY < -0.5 && -0.5 <= stick.y) {
+        this._upCount = 0;
+      } else if (this.getKey("up") || stick.y < -0.5) {
+        this._upCount += 1;
+      }
+      if (this.getKeyUp("down") || 0.5 < this.beforeStickY && stick.y <= 0.5) {
+        this._downCount = 0;
+      } else if (this.getKey("down") || 0.5 < stick.y) {
+        this._downCount += 1;
+      }
+
+      this.beforeStickX = stick.x;
+      this.beforeStickY = stick.y;
+    },
+
+    _accessor: {
+      leftPressing: {
+        get: function() {
+          var count = this._leftCount;
+          var current = this.getKey("left") || this.getStickDirection().x < -0.5;
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+      rightPressing: {
+        get: function() {
+          var count = this._rightCount;
+          var current = this.getKey("right") || 0.5 < this.getStickDirection().x;
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+      upPressing: {
+        get: function() {
+          var count = this._upCount;
+          var current = this.getKey("up") || this.getStickDirection().y < -0.5;
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+      downPressing: {
+        get: function() {
+          var count = this._downCount;
+          var current = this.getKey("down") || 0.5 < this.getStickDirection().y;
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+    }
+
+  });
+
+});
+
+phina.namespace(function() {
+
   phina.define("passion.GameSceneBg", {
     _static: {
       drawBgTexture: function() {
@@ -2340,6 +2589,82 @@ phina.namespace(function() {
 
 phina.namespace(function() {
 
+  phina.define("passion.Keyboard", {
+    superClass: "phina.input.Keyboard",
+
+    _leftCount: 0,
+    _rightCount: 0,
+    _upCount: 0,
+    _downCount: 0,
+
+    init: function(domElement) {
+      this.superInit(domElement);
+    },
+
+    update: function() {
+      this.superMethod("update");
+
+      if (this.getKeyUp("left")) {
+        this._leftCount = 0;
+      } else if (this.getKey("left")) {
+        this._leftCount += 1;
+      }
+      if (this.getKeyUp("right")) {
+        this._rightCount = 0;
+      } else if (this.getKey("right")) {
+        this._rightCount += 1;
+      }
+      if (this.getKeyUp("up")) {
+        this._upCount = 0;
+      } else if (this.getKey("up")) {
+        this._upCount += 1;
+      }
+      if (this.getKeyUp("down")) {
+        this._downCount = 0;
+      } else if (this.getKey("down")) {
+        this._downCount += 1;
+      }
+    },
+
+    _accessor: {
+      leftPressing: {
+        get: function() {
+          var count = this._leftCount;
+          var current = this.getKey("left");
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+      rightPressing: {
+        get: function() {
+          var count = this._rightCount;
+          var current = this.getKey("right");
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+      upPressing: {
+        get: function() {
+          var count = this._upCount;
+          var current = this.getKey("up");
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+      downPressing: {
+        get: function() {
+          var count = this._downCount;
+          var current = this.getKey("down");
+          return current && (count == 1 || (40 < count && count % 6 == 0));
+        }
+      },
+    },
+    
+    _static: phina.input.Keyboard._static,
+
+  });
+
+});
+
+phina.namespace(function() {
+
   phina.define("passion.GameManager", {
     superClass: "phina.util.EventDispatcher",
 
@@ -2362,7 +2687,7 @@ phina.namespace(function() {
         this.waitTo = -1;
         var task = this.timeline.shift();
 
-        console.log("[task] " + this.frame + " " + task.type);
+        // console.log("[task] " + this.frame + " " + task.type);
 
         this[task.type](task.arguments);
       }
@@ -2527,13 +2852,13 @@ phina.namespace(function() {
       var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.NormalShot";
+      var shotClassName = "passion.Laser";
       var ShotClass = phina.using(shotClassName);
       glLayer.shotDrawer.addObjType("shot", {
         className: shotClassName,
-        texture: "bullets.png",
-        additiveBlending: ShotClass.additiveBlending,
-        count: ShotClass.count,
+        texture: ShotClass.texture || "bullets.png",
+        additiveBlending: ShotClass.additiveBlending || false,
+        count: ShotClass.count || 9,
       });
       var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
       player.heatByShot = ShotClass.heatByShot;
@@ -2552,7 +2877,7 @@ phina.namespace(function() {
         }
       });
       shotPool.forEach(function(shot) {
-        shot.on("removed", function() {
+        shot.on("hit", function() {
           var effect = glLayer.topEffectDrawer.get("bullets_erase");
           if (effect) {
             effect
@@ -2563,6 +2888,8 @@ phina.namespace(function() {
               })
               .addChildTo(glLayer);
           }
+        });
+        shot.on("removed", function() {
           shots.erase(this);
         });
       });
@@ -2640,6 +2967,13 @@ phina.namespace(function() {
           this._hitTest();
           break;
       }
+      
+      var kb = app.keyboardEx;
+      var gp = app.gamepadManager.get();
+      if (gp.leftPressing || kb.leftPressing) console.log("left" + Date.now());
+      if (gp.rightPressing || kb.rightPressing) console.log("right" + Date.now());
+      if (gp.upPressing || kb.upPressing) console.log("up" + Date.now());
+      if (gp.downPressing || kb.downPressing) console.log("down" + Date.now());
     },
 
     _hitTest: function() {

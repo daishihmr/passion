@@ -29,7 +29,7 @@ var sourceFiles = function(folder) {
   return srcs;
 };
 
-gulp.task("default", ["pug", "lib", "concat", "uglify"]);
+gulp.task("default", ["pug", "lib", "concat", "uglify", "watch"]);
 
 gulp.task("concat", function() {
   gulp.src(sourceFiles("./src"))

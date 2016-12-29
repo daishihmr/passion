@@ -14,6 +14,7 @@ phina.namespace(function() {
                 "bullets.png": "./asset/image/bullets.png",
                 "bullets_erase.png": "./asset/image/bullets_erase.png",
                 "texture0.png": "./asset/image/texture0.png",
+                "effect.png": "./asset/image/effect.png",
               },
               vertexShader: {
                 "bullets.vs": "./asset/shader/bullets.vs",

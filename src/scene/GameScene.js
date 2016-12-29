@@ -78,13 +78,13 @@ phina.namespace(function() {
       var player = this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.NormalShot";
+      var shotClassName = "passion.Laser";
       var ShotClass = phina.using(shotClassName);
       glLayer.shotDrawer.addObjType("shot", {
         className: shotClassName,
-        texture: "bullets.png",
-        additiveBlending: ShotClass.additiveBlending,
-        count: ShotClass.count,
+        texture: ShotClass.texture || "bullets.png",
+        additiveBlending: ShotClass.additiveBlending || false,
+        count: ShotClass.count || 9,
       });
       var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
       player.heatByShot = ShotClass.heatByShot;
@@ -103,7 +103,7 @@ phina.namespace(function() {
         }
       });
       shotPool.forEach(function(shot) {
-        shot.on("removed", function() {
+        shot.on("hit", function() {
           var effect = glLayer.topEffectDrawer.get("bullets_erase");
           if (effect) {
             effect
@@ -114,6 +114,8 @@ phina.namespace(function() {
               })
               .addChildTo(glLayer);
           }
+        });
+        shot.on("removed", function() {
           shots.erase(this);
         });
       });
@@ -191,6 +193,13 @@ phina.namespace(function() {
           this._hitTest();
           break;
       }
+      
+      var kb = app.keyboardEx;
+      var gp = app.gamepadManager.get();
+      if (gp.leftPressing || kb.leftPressing) console.log("left" + Date.now());
+      if (gp.rightPressing || kb.rightPressing) console.log("right" + Date.now());
+      if (gp.upPressing || kb.upPressing) console.log("up" + Date.now());
+      if (gp.downPressing || kb.downPressing) console.log("down" + Date.now());
     },
 
     _hitTest: function() {
