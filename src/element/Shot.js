@@ -60,8 +60,8 @@ phina.namespace(function() {
         if (effect) {
           effect
             .spawn({
-              x: this.x,
-              y: this.y - 30,
+              x: this.x + ShotClass.mazzleFlashEffect.x,
+              y: this.y + ShotClass.mazzleFlashEffect.y,
             })
             .addChildTo(glLayer);
         }
@@ -330,6 +330,8 @@ phina.namespace(function() {
         texture: "effect.png",
         count: 20,
         additiveBlending: true,
+        x: 0,
+        y: -10,
       }
     },
 

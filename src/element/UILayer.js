@@ -18,16 +18,44 @@ phina.namespace(function() {
             x: GAME_AREA_WIDTH * passion.GLLayer.padding,
             y: GAME_AREA_HEIGHT * passion.GLLayer.padding,
           },
+          bossHpGauge: {
+            className: "phina.display.DisplayElement",
+            x: SCREEN_WIDTH * 0.5,
+            y: SCREEN_HEIGHT * 0.06,
+            children: {
+              inner: {
+                className: "passion.BossHpGaugeValue",
+                arguments: {
+                  width: SCREEN_WIDTH * 0.92,
+                  height: SCREEN_HEIGHT * 0.03,
+                },
+                value: 100,
+                maxValue: 100,
+                onenterframe: function() {
+                  this.value -= 0.1;
+                },
+              },
+              outer: {
+                className: "passion.BossHpGauge",
+                arguments: {
+                  width: SCREEN_WIDTH * 0.92,
+                  height: SCREEN_HEIGHT * 0.03,
+                },
+              },
+            },
+          },
           scoreBg: {
             className: "passion.UIFrame",
             arguments: {
               width: SCREEN_WIDTH * 0.96,
               height: SCREEN_HEIGHT * 0.05,
             },
-            x: SCREEN_WIDTH * 0.00,
+            x: SCREEN_WIDTH * (1 - 0.60),
             y: SCREEN_HEIGHT * 0.00,
             originX: 0,
             originY: 0,
+            scaleX: 0.60,
+            scaleY: 0.60,
             children: {
               scoreLabel: {
                 className: "phina.display.Label",
@@ -219,6 +247,14 @@ phina.namespace(function() {
       c.fillRect(0, 0, c.width, c.height);
       return c;
     },
+
+    showBoss: function() {
+      this.scoreBg.tweener
+        .clear()
+        .to({
+          y: 0
+        })
+    }
 
   });
 });

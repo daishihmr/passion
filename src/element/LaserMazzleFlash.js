@@ -15,8 +15,8 @@ phina.namespace(function() {
         frameY: 1 / 8,
         frameW: 1 / 8,
         frameH: 1 / 8,
-        scaleX: 160 + Math.sin(c) * 30,
-        scaleY: 160 + Math.sin(c) * 30,
+        scaleX: 130 + Math.sin(c) * 30,
+        scaleY: 130 + Math.sin(c) * 30,
         alpha: 0.1,
         rotation: (-90).toRadian(),
       }));

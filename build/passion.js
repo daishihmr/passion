@@ -1134,8 +1134,8 @@ phina.namespace(function() {
         frameY: 1 / 8,
         frameW: 1 / 8,
         frameH: 1 / 8,
-        scaleX: 160 + Math.sin(c) * 30,
-        scaleY: 160 + Math.sin(c) * 30,
+        scaleX: 130 + Math.sin(c) * 30,
+        scaleY: 130 + Math.sin(c) * 30,
         alpha: 0.1,
         rotation: (-90).toRadian(),
       }));
@@ -1474,8 +1474,8 @@ phina.namespace(function() {
         if (effect) {
           effect
             .spawn({
-              x: this.x,
-              y: this.y - 30,
+              x: this.x + ShotClass.mazzleFlashEffect.x,
+              y: this.y + ShotClass.mazzleFlashEffect.y,
             })
             .addChildTo(glLayer);
         }
@@ -1744,6 +1744,8 @@ phina.namespace(function() {
         texture: "effect.png",
         count: 20,
         additiveBlending: true,
+        x: 0,
+        y: -10,
       }
     },
 
@@ -2145,6 +2147,104 @@ phina.namespace(function() {
 
 phina.namespace(function() {
 
+  phina.define("passion.BossHpGauge", {
+    superClass: "phina.display.Shape",
+
+    init: function(options) {
+      this.superInit(options);
+      this.backgroundColor = "transparent";
+      this.strokeWidth = 2;
+      this.fill = null;
+
+      var canvas = phina.graphics.Canvas().setSize(this.width, this.height);
+      var c = canvas.context;
+
+      var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      sg.addColorStop(0.00, "hsla(190, 100%, 30%, 1.0)");
+      sg.addColorStop(0.38, "hsla(190, 100%, 30%, 1.0)");
+      sg.addColorStop(0.48, "hsla(190, 100%, 80%, 1.0)");
+      sg.addColorStop(0.52, "hsla(190, 100%, 80%, 1.0)");
+      sg.addColorStop(0.62, "hsla(190, 100%, 30%, 1.0)");
+      sg.addColorStop(1.00, "hsla(190, 100%, 30%, 1.0)");
+      this.stroke = sg;
+    },
+
+    prerender: function(canvas) {
+      var c = canvas.context;
+
+      c.beginPath();
+      c.moveTo(-this.width / 2 + 5, -this.height / 3);
+      c.lineTo(-this.width / 8, -this.height / 3);
+      c.lineTo(-this.width / 12, -this.height / 10);
+      c.lineTo(this.width / 12, -this.height / 10);
+      c.lineTo(this.width / 8, -this.height / 3);
+      c.lineTo(this.width / 2 - 5, -this.height / 3);
+      c.lineTo(this.width / 2, this.height / 10);
+      c.lineTo(this.width / 8, this.height / 10);
+      c.lineTo(this.width / 12, this.height / 3);
+      c.lineTo(-this.width / 12, this.height / 3);
+      c.lineTo(-this.width / 8, this.height / 10);
+      c.lineTo(-this.width / 2, this.height / 10);
+      c.closePath();
+    },
+
+    postrender: function(canvas) {
+      var c = canvas.context;
+
+      c.beginPath();
+      c.moveTo(-3 + -this.width / 2 + 5, -3 + -this.height / 3);
+      c.lineTo(+3 + -this.width / 8, -3 + -this.height / 3);
+      c.lineTo(+3 + -this.width / 12, -3 + -this.height / 10);
+      c.lineTo(-3 + this.width / 12, -3 + -this.height / 10);
+      c.lineTo(-3 + this.width / 8, -3 + -this.height / 3);
+      c.lineTo(+3 + this.width / 2 - 5, -3 + -this.height / 3);
+      c.lineTo(+3 + this.width / 2, +3 + this.height / 10);
+      c.lineTo(+3 + this.width / 8, +3 + this.height / 10);
+      c.lineTo(+3 + this.width / 12, +3 + this.height / 3);
+      c.lineTo(-3 + -this.width / 12, +3 + this.height / 3);
+      c.lineTo(-3 + -this.width / 8, +3 + this.height / 10);
+      c.lineTo(-3 + -this.width / 2, +3 + this.height / 10);
+      c.closePath();
+
+      c.lineWidth = 1;
+      c.stroke();
+    },
+  });
+
+  phina.define("passion.BossHpGaugeValue", {
+    superClass: "passion.BossHpGauge",
+
+    value: 0,
+    maxValue: 100,
+
+    init: function(options) {
+      this.superInit(options);
+      this.fill = "hsla(210, 80%, 40%, 0.9)";
+      this.stroke = null;
+    },
+
+    clip: function(canvas) {
+      var c = canvas.context;
+
+      var v = Math.clamp(this.value / this.maxValue, 0, 1);
+
+      c.beginPath();
+      c.moveTo(-this.width / 2, -this.height / 2);
+      c.lineTo(-this.width / 2 + this.width * v, -this.height / 2);
+      c.lineTo(-this.width / 2 + this.width * v, +this.height / 2);
+      c.lineTo(-this.width / 2, +this.height / 2);
+      c.closePath();
+
+      c.clip();
+    },
+
+    postrender: function() {},
+  });
+
+});
+
+phina.namespace(function() {
+
   phina.define("passion.UIFrame", {
     superClass: "phina.display.Shape",
 
@@ -2367,16 +2467,44 @@ phina.namespace(function() {
             x: GAME_AREA_WIDTH * passion.GLLayer.padding,
             y: GAME_AREA_HEIGHT * passion.GLLayer.padding,
           },
+          bossHpGauge: {
+            className: "phina.display.DisplayElement",
+            x: SCREEN_WIDTH * 0.5,
+            y: SCREEN_HEIGHT * 0.06,
+            children: {
+              inner: {
+                className: "passion.BossHpGaugeValue",
+                arguments: {
+                  width: SCREEN_WIDTH * 0.92,
+                  height: SCREEN_HEIGHT * 0.03,
+                },
+                value: 100,
+                maxValue: 100,
+                onenterframe: function() {
+                  this.value -= 0.1;
+                },
+              },
+              outer: {
+                className: "passion.BossHpGauge",
+                arguments: {
+                  width: SCREEN_WIDTH * 0.92,
+                  height: SCREEN_HEIGHT * 0.03,
+                },
+              },
+            },
+          },
           scoreBg: {
             className: "passion.UIFrame",
             arguments: {
               width: SCREEN_WIDTH * 0.96,
               height: SCREEN_HEIGHT * 0.05,
             },
-            x: SCREEN_WIDTH * 0.00,
+            x: SCREEN_WIDTH * (1 - 0.60),
             y: SCREEN_HEIGHT * 0.00,
             originX: 0,
             originY: 0,
+            scaleX: 0.60,
+            scaleY: 0.60,
             children: {
               scoreLabel: {
                 className: "phina.display.Label",
@@ -2569,6 +2697,14 @@ phina.namespace(function() {
       return c;
     },
 
+    showBoss: function() {
+      this.scoreBg.tweener
+        .clear()
+        .to({
+          y: 0
+        })
+    }
+
   });
 });
 
@@ -2582,21 +2718,18 @@ phina.namespace(function() {
     init: function() {
       this.superInit();
     },
-    
+
     setRunner: function(runner) {
       this.runner = runner;
-      return this;
-    },
-
-    onattached: function() {
-      if (this.runner) {
-        this.target.x = this.runner.x;
-        this.target.y = this.runner.y;
-        this.target.rotation = this.runner.direction;
-        this.runner.onVanish = function() {
+      if (this.target && runner) {
+        this.target.x = runner.x;
+        this.target.y = runner.y;
+        this.target.rotation = runner.direction;
+        runner.onVanish = function() {
           this.remove();
         }.bind(this.target);
       }
+      return this;
     },
 
     update: function(app) {

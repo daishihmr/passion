@@ -8,21 +8,18 @@ phina.namespace(function() {
     init: function() {
       this.superInit();
     },
-    
+
     setRunner: function(runner) {
       this.runner = runner;
-      return this;
-    },
-
-    onattached: function() {
-      if (this.runner) {
-        this.target.x = this.runner.x;
-        this.target.y = this.runner.y;
-        this.target.rotation = this.runner.direction;
-        this.runner.onVanish = function() {
+      if (this.target && runner) {
+        this.target.x = runner.x;
+        this.target.y = runner.y;
+        this.target.rotation = runner.direction;
+        runner.onVanish = function() {
           this.remove();
         }.bind(this.target);
       }
+      return this;
     },
 
     update: function(app) {
