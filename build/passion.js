@@ -1871,7 +1871,6 @@ phina.namespace(function() {
       }, options);
 
       if (!this.objTypes.contains(objName)) {
-        var self = this;
         var instanceStride = this.instanceStride / 4;
 
         this.objTypes.push(objName);
