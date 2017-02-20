@@ -21,7 +21,7 @@ phina.namespace(function() {
           bossHpGauge: {
             className: "phina.display.DisplayElement",
             x: SCREEN_WIDTH * 0.5,
-            y: SCREEN_HEIGHT * 0.06,
+            y: SCREEN_HEIGHT * 0.025,
             children: {
               inner: {
                 className: "passion.BossHpGaugeValue",
@@ -50,12 +50,12 @@ phina.namespace(function() {
               width: SCREEN_WIDTH * 0.96,
               height: SCREEN_HEIGHT * 0.05,
             },
-            x: SCREEN_WIDTH * (1 - 0.60),
+            x: 0,
             y: SCREEN_HEIGHT * 0.00,
             originX: 0,
             originY: 0,
-            scaleX: 0.60,
-            scaleY: 0.60,
+            // scaleX: 0.60,
+            // scaleY: 0.60,
             children: {
               scoreLabel: {
                 className: "phina.display.Label",

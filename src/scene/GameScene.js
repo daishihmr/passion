@@ -208,6 +208,7 @@ phina.namespace(function() {
         var b = bs[i];
         if (b.isHit(p)) {
           p.flare("damaged", { another: b });
+          b.remove();
         }
       }
     },

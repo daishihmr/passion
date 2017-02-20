@@ -26,12 +26,12 @@ phina.namespace(function() {
       var c = canvas.context;
 
       c.beginPath();
-      c.moveTo(-this.width / 2 + 5, -this.height / 3);
+      c.moveTo(-this.width / 2.05, -this.height / 3);
       c.lineTo(-this.width / 8, -this.height / 3);
       c.lineTo(-this.width / 12, -this.height / 10);
       c.lineTo(this.width / 12, -this.height / 10);
       c.lineTo(this.width / 8, -this.height / 3);
-      c.lineTo(this.width / 2 - 5, -this.height / 3);
+      c.lineTo(this.width / 2.05, -this.height / 3);
       c.lineTo(this.width / 2, this.height / 10);
       c.lineTo(this.width / 8, this.height / 10);
       c.lineTo(this.width / 12, this.height / 3);
