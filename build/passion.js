@@ -2214,6 +2214,7 @@ phina.namespace(function() {
             className: "phina.display.DisplayElement",
             x: SCREEN_WIDTH * 0.5,
             y: SCREEN_HEIGHT * 0.025,
+            visible: false,
             children: {
               inner: {
                 className: "passion.BossHpGaugeValue",
@@ -2223,9 +2224,6 @@ phina.namespace(function() {
                 },
                 value: 100,
                 maxValue: 100,
-                onenterframe: function() {
-                  this.value -= 0.1;
-                },
               },
               outer: {
                 className: "passion.BossHpGauge",
@@ -2809,7 +2807,7 @@ phina.namespace(function() {
       this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.Laser";
+      var shotClassName = "passion.WideShot2";
       var ShotClass = phina.using(shotClassName);
       ShotClass.setup(shotClassName, glLayer, this.player, this.shots, gameScene);
 

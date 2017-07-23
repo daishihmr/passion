@@ -80,7 +80,7 @@ phina.namespace(function() {
       this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.Laser";
+      var shotClassName = "passion.WideShot2";
       var ShotClass = phina.using(shotClassName);
       ShotClass.setup(shotClassName, glLayer, this.player, this.shots, gameScene);
 
