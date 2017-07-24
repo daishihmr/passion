@@ -1,6 +1,6 @@
 phina.namespace(() => {
 
-  const c = 0;
+  let c = 0;
 
   phina.define("passion.LaserMazzleFlash", {
     superClass: "passion.Sprite",

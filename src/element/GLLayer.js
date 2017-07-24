@@ -59,13 +59,13 @@ phina.namespace(() => {
         .ortho(-w * 0.5, w * 0.5, h * 0.5, -h * 0.5, 0.1, 3000)
         .calcVpMatrix();
 
-      this.bgDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
-      this.enemyDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
-      this.shotDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
-      this.effectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
-      this.playerDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
+      this.bgDrawer = passion.SpriteDrawer(gl, extInstancedArrays, w, h);
+      this.enemyDrawer = passion.SpriteDrawer(gl, extInstancedArrays, w, h);
+      this.shotDrawer = passion.SpriteDrawer(gl, extInstancedArrays, w, h);
+      this.effectDrawer = passion.SpriteDrawer(gl, extInstancedArrays, w, h);
+      this.playerDrawer = passion.SpriteDrawer(gl, extInstancedArrays, w, h);
       this.bulletDrawer = passion.BulletDrawer(gl, extInstancedArrays, w, h);
-      this.topEffectDrawer = passion.SpritDrawer(gl, extInstancedArrays, w, h);
+      this.topEffectDrawer = passion.SpriteDrawer(gl, extInstancedArrays, w, h);
 
       this.ready = true;
     },

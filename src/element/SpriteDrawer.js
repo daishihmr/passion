@@ -1,6 +1,6 @@
 phina.namespace(() => {
 
-  phina.define("passion.SpritDrawer", {
+  phina.define("passion.SpriteDrawer", {
     superClass: "phigl.InstancedDrawable",
 
     objTypes: null,
