@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.StageAssetLoadScene", {
     superClass: "phina.display.DisplayScene",
@@ -41,86 +41,67 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      var t = Math.floor(app.ticker.frame * 0.1) % 4;
-      var s = "downloading";
-      t.times(function() { s += "." });
+      let t = Math.floor(app.ticker.frame * 0.1) % 4;
+      let s = "downloading";
+      t.times(() =>  s += ".");
       s.paddingRight("downloading".length + 3, " ");
       this.label.text = s;
     },
 
     step0: function(stageName) {
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         json: { "stage": "./asset/stage/" + stageName + ".json" }
       });
       this.label.tweener.fadeIn(1000);
-      loader.on("load", function() {
-        this.step1();
-      }.bind(this));
+      loader.on("load", e => this.step1());
 
       // this.label.text = "step0";
     },
 
     step1: function() {
-      var stageData = phina.asset.AssetManager.get("json", "stage").data;
+      const stageData = phina.asset.AssetManager.get("json", "stage").data;
       // console.log(stageData);
 
-      var enemies = {};
-      stageData.enemies.forEach(function(enemy) {
-        enemies[enemy + ".enemy"] = "./asset/enemy/" + enemy + ".json";
-      });
+      const enemies = {};
+      stageData.enemies.forEach(enemy => enemies[enemy + ".enemy"] = "./asset/enemy/" + enemy + ".json");
       
-      var sounds = {};
-      stageData.bgm.forEach(function(b, idx) {
-        sounds["bgm" + idx] = "./asset/sound/" + b.bgm + ".mp3";
-      });
+      const sounds = {};
+      stageData.bgm.forEach((b, idx) => sounds["bgm" + idx] = "./asset/sound/" + b.bgm + ".mp3");
 
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         json: enemies,
         sound: sounds,
         image: { "bg": "./asset/image/" + stageData.bg + ".png" },
       });
-      loader.on("load", function() {
-        this.step2(stageData);
-      }.bind(this));
+      loader.on("load", e => this.step2(stageData));
 
       // this.label.text = "step1";
     },
 
     step2: function(stageData) {
-      var textures = {};
+      const textures = {};
       stageData.enemies
-        .map(function(enemy) {
-          return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
-        })
-        .map(function(enemyData) {
-          // console.log(enemyData);
-          return enemyData.texture;
-        })
+        .map(enemy => phina.asset.AssetManager.get("json", enemy + ".enemy").data)
+        .map(enemyData => enemyData.texture)
         .uniq()
-        .forEach(function(texture) {
-          textures[texture] = "./asset/image/" + texture + ".png";
-        });
+        .forEach(texture => textures[texture] = "./asset/image/" + texture + ".png");
 
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         image: textures,
       });
-      loader.on("load", function() {
-        this.step3(stageData);
-      }.bind(this));
+      loader.on("load", () => this.step3(stageData));
 
       // this.label.text = "step2";
     },
 
     step3: function(stageData) {
-      var xmls = {};
+      const xmls = {};
       stageData.enemies
-        .map(function(enemy) {
-          return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
-        })
-        .forEach(function(enemyData) {
+        .map(enemy => phina.asset.AssetManager.get("json", enemy + ".enemy").data)
+        .forEach(enemyData => {
           if (enemyData.motion) {
             xmls["motion/" + enemyData.motion] = "./asset/motion/" + enemyData.motion + ".xml";
           }
@@ -128,7 +109,7 @@ phina.namespace(function() {
             xmls["attack/" + enemyData.attack] = "./asset/attack/" + enemyData.attack + ".xml";
           }
         });
-      stageData.timeline.forEach(function(task) {
+      stageData.timeline.forEach(task => {
         if (task.arguments.motion) {
           xmls["motion/" + task.arguments.motion] = "./asset/motion/" + task.arguments.motion + ".xml";
         }
@@ -145,22 +126,18 @@ phina.namespace(function() {
         }
       });
 
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         xml: xmls,
       });
-      loader.on("load", function() {
-        this.step4();
-      }.bind(this));
+      loader.on("load", () => this.step4());
 
       // this.label.text = "step3";
     },
 
     step4: function() {
       this.label.tweener.clear().fadeOut(100);
-      this.bg1.tweener.fadeOut(500).call(function() {
-        this.app.popScene();
-      }.bind(this));
+      this.bg1.tweener.fadeOut(500).call(() => this.app.popScene());
     },
 
   });

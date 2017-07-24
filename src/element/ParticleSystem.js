@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.ParticleEmitter", {
     superClass: "phina.app.Element",
@@ -21,8 +21,8 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      for (var i = 0; i < this.genPerFrame; i++) {
-        var particle = this.drawer.get(this.objName);
+      for (let i = 0; i < this.genPerFrame; i++) {
+        const particle = this.drawer.get(this.objName);
         if (particle) {
           particle
             .spawn({}.$extend(this.spawnOptions, {
@@ -43,10 +43,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("removed", function() {
-        // this.clear("enterframe");
-        this.tweener.clear();
-      });
+      this.on("removed", e => this.tweener.clear());
     },
 
   });

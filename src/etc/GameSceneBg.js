@@ -1,13 +1,13 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GameSceneBg", {
     _static: {
       drawBgTexture: function() {
-        var bgTexture = phina.graphics.Canvas();
+        const bgTexture = phina.graphics.Canvas();
         bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         bgTexture.clearColor("hsla(190, 100%, 95%, 0.05)");
-        (150).times(function(i, j) {
-          var y = (SCREEN_HEIGHT * 1.5) / j * i;
+        (150).times((i, j) => {
+          let y = (SCREEN_HEIGHT * 1.5) / j * i;
           bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.1)";
           bgTexture.strokeLines(
             SCREEN_WIDTH * 0.0, y - 10,

@@ -1,13 +1,13 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Background", {
     superClass: "passion.Sprite",
 
     _static: {
       setup: function(glLayer, texture) {
-        var texSrc = phina.asset.AssetManager.get("image", texture);
-        var height = texSrc.domElement.height * GAME_AREA_WIDTH / texSrc.domElement.width;
-        var tex = phina.graphics.Canvas().setSize(512, 512);
+        const texSrc = phina.asset.AssetManager.get("image", texture);
+        const height = texSrc.domElement.height * GAME_AREA_WIDTH / texSrc.domElement.width;
+        const tex = phina.graphics.Canvas().setSize(512, 512);
         tex.context.drawImage(texSrc.domElement, 0, 0, 512, 512);
         phina.asset.AssetManager.set("image", texture + "_bg", tex);
 
@@ -17,13 +17,13 @@ phina.namespace(function() {
           count: 2,
         });
 
-        var bg1 = glLayer.bgDrawer.get("bg");
+        const bg1 = glLayer.bgDrawer.get("bg");
         bg1.spawn(height);
         bg1.x = GAME_AREA_WIDTH / 2;
         bg1.y = GAME_AREA_HEIGHT / 2;
         bg1.addChildTo(glLayer);
 
-        var bg2 = glLayer.bgDrawer.get("bg");
+        const bg2 = glLayer.bgDrawer.get("bg");
         bg2.spawn(height);
         bg2.x = GAME_AREA_WIDTH / 2;
         bg2.y = GAME_AREA_HEIGHT / 2 - height;
@@ -35,7 +35,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function() {
+      this.on("enterframe", e => {
         this.y += 3;
         if (this.y > GAME_AREA_HEIGHT / 2 + this.height) {
           this.y -= this.height * 2;

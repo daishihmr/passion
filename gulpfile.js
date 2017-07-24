@@ -2,7 +2,6 @@ var gulp = require("gulp");
 var concat = require("gulp-concat");
 var sourcemaps = require("gulp-sourcemaps");
 var watch = require("gulp-watch");
-var uglify = require("gulp-uglify");
 var rename = require("gulp-rename");
 var fs = require("node-fs-extra");
 var pug = require("gulp-pug");
@@ -29,7 +28,7 @@ var sourceFiles = function(folder) {
   return srcs;
 };
 
-gulp.task("default", ["pug", "lib", "concat", "uglify", "watch"]);
+gulp.task("default", ["pug", "lib", "concat", "watch"]);
 
 gulp.task("concat", function() {
   gulp.src(sourceFiles("./src"))
@@ -39,14 +38,14 @@ gulp.task("concat", function() {
     .pipe(gulp.dest("./build"));
 });
 
-gulp.task("uglify", function() {
-  gulp.src("./build/passion.js")
-    .pipe(uglify())
-    .pipe(rename({
-      extname: ".min.js"
-    }))
-    .pipe(gulp.dest("./build"));
-});
+// gulp.task("uglify", function() {
+//   gulp.src("./build/passion.js")
+//     .pipe(uglify())
+//     .pipe(rename({
+//       extname: ".min.js"
+//     }))
+//     .pipe(gulp.dest("./build"));
+// });
 
 gulp.task("lib", function() {
   fs.copy("./phigl/build/phigl.js", "./lib/phigl.js");

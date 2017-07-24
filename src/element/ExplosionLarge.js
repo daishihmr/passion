@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.ExplosionLarge", {
     superClass: "passion.ParticleEmitter",
@@ -25,15 +25,13 @@ phina.namespace(function() {
         .to({
           genPerFrame: 0,
         }, 100)
-        .call(function() {
-          this.remove();
-        }.bind(this));
+        .call(() => this.remove());
     },
     
     onspawnParticle: function(e) {
-      var p = e.particle;
-      var dir = Math.random() * Math.PI * 2;
-      var dst = Math.randint(2, 25);
+      const p = e.particle;
+      const dir = Math.random() * Math.PI * 2;
+      const dst = Math.randint(2, 25);
       p.tweener
         .clear()
         .to({
@@ -45,9 +43,7 @@ phina.namespace(function() {
           blue: 0.0,
           alpha: 0
         }, 400)
-        .call(function() {
-          this.remove();
-        }.bind(p));
+        .call(() => p.remove());
     },
 
   });

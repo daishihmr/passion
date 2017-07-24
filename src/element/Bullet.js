@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Bullet", {
     superClass: "phina.app.Element",
@@ -27,8 +27,8 @@ phina.namespace(function() {
     },
 
     spawn: function(option) {
-      var instanceData = this.instanceData;
-      var index = this.index;
+      const instanceData = this.instanceData;
+      const index = this.index;
 
       this.age = 0;
       this.scale = option.scale;
@@ -61,8 +61,8 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      var instanceData = this.instanceData;
-      var index = this.index;
+      const instanceData = this.instanceData;
+      const index = this.index;
 
       this.brightness = 1.5 + Math.sin(this.age * 0.2) * 0.6;
 

@@ -1,6 +1,6 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
-  var c = 0;
+  const c = 0;
 
   phina.define("passion.LaserMazzleFlash", {
     superClass: "passion.Sprite",
@@ -25,9 +25,7 @@ phina.namespace(function() {
         .to({
           alpha: 0
         }, 300)
-        .call(function() {
-          this.remove();
-        }.bind(this));
+        .call(() => this.remove());
 
       c += 0.4;
 

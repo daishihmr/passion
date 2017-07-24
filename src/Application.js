@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Application", {
     superClass: "phina.display.CanvasApp",
@@ -13,21 +13,21 @@ phina.namespace(function() {
       this.fps = FPS;
 
       this.keyboardEx = passion.Keyboard(document);
-      this.keyboardEx.on('keydown', function(e) {
+      this.keyboardEx.on('keydown', e => {
         this.currentScene && this.currentScene.flare('keydown', {
           keyCode: e.keyCode,
         });
-      }.bind(this));
-      this.keyboardEx.on('keyup', function(e) {
+      });
+      this.keyboardEx.on('keyup', e => {
         this.currentScene && this.currentScene.flare('keyup', {
           keyCode: e.keyCode,
         });
-      }.bind(this));
-      this.keyboardEx.on('keypress', function(e) {
+      });
+      this.keyboardEx.on('keypress', e => {
         this.currentScene && this.currentScene.flare('keypress', {
           keyCode: e.keyCode,
         });
-      }.bind(this));
+      });
 
       this.gamepadManager = passion.GamepadManager();
     },

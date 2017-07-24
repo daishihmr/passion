@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GameManager", {
     superClass: "phina.util.EventDispatcher",
@@ -20,7 +20,7 @@ phina.namespace(function() {
     update: function(app) {
       while ((this.waitTo === this.frame || this.waitTo === -1) && this.timeline.length > 0) {
         this.waitTo = -1;
-        var task = this.timeline.shift();
+        const task = this.timeline.shift();
 
         // console.log("[task] " + this.frame + " " + task.type);
 
@@ -31,7 +31,7 @@ phina.namespace(function() {
     },
 
     startBgm: function(arg) {
-      // var music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
+      // const music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
       // if (arg.loopEnd) {
       //   music.loopStart = arg.loopStart;
       //   music.loopEnd = arg.loopEnd;
@@ -49,13 +49,13 @@ phina.namespace(function() {
     },
 
     enemyGroup: function(arg) {
-      var enemy;
+      let enemy;
       if (typeof(arg.enemy) == "string") {
         enemy = { name: enemy };
       } else {
         enemy = arg.enemy;
       }
-      for (var i = 0; i < arg.count; i++) {
+      for (let i = 0; i < arg.count; i++) {
         this.flare("spawnEnemy", {}.$extend(enemy, {
           x: (arg.x || 0) + (arg.dx || 0) * i,
           y: (arg.y || 0) + (arg.dy || 0) * i,

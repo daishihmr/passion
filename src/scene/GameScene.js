@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
@@ -14,11 +14,11 @@ phina.namespace(function() {
     init: function(options) {
       this.superInit(options);
 
-      var gameScene = this;
-      var stageData = phina.asset.AssetManager.get("json", "stage").data;
+      const gameScene = this;
+      const stageData = phina.asset.AssetManager.get("json", "stage").data;
 
-      var r = phina.util.Random(12345);
-      var randomFunc = function() {
+      const r = phina.util.Random(12345);
+      const randomFunc = function() {
         return r.random();
       };
       bulletml.Walker.random = randomFunc;
@@ -50,8 +50,8 @@ phina.namespace(function() {
 
       this.uiLayer.tweener.clear().fadeIn(500);
 
-      var gameManager = this.gameManager;
-      var glLayer = this.glLayer;
+      const gameManager = this.gameManager;
+      const glLayer = this.glLayer;
 
       glLayer.effectDrawer.addObjType("particle", {
         texture: "texture0.png",
@@ -74,44 +74,36 @@ phina.namespace(function() {
       passion.Background.setup(glLayer, "bg", 1069);
 
       // 自機
-      var playerSpec = {
+      const playerSpec = {
         hp: 100,
       };
       this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.WideShot2";
-      var ShotClass = phina.using(shotClassName);
+      const shotClassName = "passion.WideShot2";
+      const ShotClass = phina.using(shotClassName);
       ShotClass.setup(shotClassName, glLayer, this.player, this.shots, gameScene);
 
       // 敵
       stageData.enemies
-        .map(function(enemy) {
-          return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
-        })
-        .map(function(enemyData) {
-          return enemyData.texture;
-        })
+        .map(enemy => phina.asset.AssetManager.get("json", enemy + ".enemy").data)
+        .map(enemyData => enemyData.texture)
         .uniq()
-        .forEach(function(textureName) {
+        .forEach(textureName => {
           glLayer.enemyDrawer.addObjType(textureName, {
             className: "passion.Enemy",
             texture: textureName,
             count: 50,
           });
-          glLayer.enemyDrawer.objParameters[textureName].pool.forEach(function(enemy) {
-            enemy.on("removed", function() {
-              enemies.erase(this);
-            });
-            enemy.on("killed", function() {
-              this.playKilledEffect(gameScene);
-            });
+          glLayer.enemyDrawer.objParameters[textureName].pool.forEach(enemy => {
+            enemy.on("removed", e => enemies.erase(enemy));
+            enemy.on("killed", e => enemy.playKilledEffect(gameScene));
           });
         });
-      var enemies = this.enemies;
-      gameManager.on("spawnEnemy", function(e) {
-        var enemyData = phina.asset.AssetManager.get("json", e.name + ".enemy").data;
-        var enemy = glLayer.enemyDrawer.get(enemyData.texture)
+      const enemies = this.enemies;
+      gameManager.on("spawnEnemy", e => {
+        const enemyData = phina.asset.AssetManager.get("json", e.name + ".enemy").data;
+        const enemy = glLayer.enemyDrawer.get(enemyData.texture)
         if (enemy) {
           enemy.spawn({}.$extend(enemyData, e, { x: e.x * GAME_AREA_WIDTH, y: e.y * GAME_AREA_HEIGHT }));
           enemy.addChildTo(glLayer);
@@ -121,23 +113,21 @@ phina.namespace(function() {
 
       // 弾
       passion.Danmaku.setup(this);
-      var bullets = this.bullets;
-      this.on("spawnBullet", function(e) {
-        var bullet = e.bullet;
+      const bullets = this.bullets;
+      this.on("spawnBullet", e => {
+        const bullet = e.bullet;
         bullet.addChildTo(glLayer);
         bullets.push(bullet);
       });
-      glLayer.bulletDrawer.pool.array.forEach(function(bullet) {
-        bullet.on("removed", function() {
-          bullets.erase(this);
-        });
-        bullet.on("erased", function() {
-          var effect = glLayer.topEffectDrawer.get("BulletEraseEffect");
+      glLayer.bulletDrawer.pool.array.forEach(bullet => {
+        bullet.on("removed", e => bullets.erase(e));
+        bullet.on("erased", e => {
+          const effect = glLayer.topEffectDrawer.get("BulletEraseEffect");
           if (effect) {
             effect
               .spawn({
-                x: this.x,
-                y: this.y,
+                x: bullet.x,
+                y: bullet.y,
                 frameY: 0,
               })
               .addChildTo(glLayer);
@@ -145,9 +135,7 @@ phina.namespace(function() {
         });
       });
 
-      this.uiLayer.showReadyGo(function() {
-        gameScene.status = 0;
-      });
+      this.uiLayer.showReadyGo(() => gameScene.status = 0);
     },
 
     update: function(app) {
@@ -158,8 +146,8 @@ phina.namespace(function() {
           break;
       }
 
-      var kb = app.keyboardEx;
-      var gp = app.gamepadManager.get();
+      const kb = app.keyboardEx;
+      const gp = app.gamepadManager.get();
       if (gp.leftPressing || kb.leftPressing) console.log("left" + Date.now());
       if (gp.rightPressing || kb.rightPressing) console.log("right" + Date.now());
       if (gp.upPressing || kb.upPressing) console.log("up" + Date.now());
@@ -176,12 +164,12 @@ phina.namespace(function() {
     _hitTestItemPlayer: function() {},
 
     _hitTestEnemyShot: function() {
-      var es = this.enemies.clone();
-      var ss = this.shots.clone();
-      for (var i = 0; i < es.length; i++) {
-        var e = es[i];
-        for (var j = 0; j < ss.length; j++) {
-          var s = ss[j];
+      const es = this.enemies.clone();
+      const ss = this.shots.clone();
+      for (let i = 0; i < es.length; i++) {
+        const e = es[i];
+        for (let j = 0; j < ss.length; j++) {
+          const s = ss[j];
           if (e.isHit(s)) {
             e.flare("damaged", { shot: s });
             s.flare("hit", { enemy: e });
@@ -191,10 +179,10 @@ phina.namespace(function() {
     },
 
     _hitTestEnemyPlayer: function() {
-      var es = this.enemies.clone();
-      var p = this.player;
-      for (var i = 0; i < es.length; i++) {
-        var e = es[i];
+      const es = this.enemies.clone();
+      const p = this.player;
+      for (let i = 0; i < es.length; i++) {
+        const e = es[i];
         if (e.isHit(p)) {
           p.flare("damaged", { another: e });
         }
@@ -202,10 +190,10 @@ phina.namespace(function() {
     },
 
     _hitTestBulletPlayer: function() {
-      var bs = this.bullets.clone();
-      var p = this.player;
-      for (var i = 0; i < bs.length; i++) {
-        var b = bs[i];
+      const bs = this.bullets.clone();
+      const p = this.player;
+      for (let i = 0; i < bs.length; i++) {
+        const b = bs[i];
         if (b.isHit(p)) {
           p.flare("damaged", { another: b });
           b.remove();
@@ -214,25 +202,25 @@ phina.namespace(function() {
     },
 
     eraseAllBullets: function() {
-      this.bullets.clone().forEach(function(bullet) {
+      this.bullets.clone().forEach(bullet => {
         bullet.flare("erased");
         bullet.remove();
       });
     },
 
     onspawnItem: function(e) {
-      var item = e.item;
+      const item = e.item;
       item.addChildTo(this.glLayer);
       this.items.push(item);
     },
 
     onspawnParticle: function(e) {
-      var EmitterClass = phina.using(e.className);
-      var emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);
+      const EmitterClass = phina.using(e.className);
+      const emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);
       emitter.x = e.x;
       emitter.y = e.y;
       emitter.addChildTo(this.glLayer);
-    }
+    },
 
   });
 });

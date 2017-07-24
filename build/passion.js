@@ -1,10 +1,11 @@
-var SCREEN_WIDTH = 360;
-var SCREEN_HEIGHT = 640;
-var GAME_AREA_WIDTH = SCREEN_WIDTH;
-var GAME_AREA_HEIGHT = SCREEN_HEIGHT * 0.85;
-var FPS = 60;
+const SCREEN_WIDTH = 360;
+const SCREEN_HEIGHT = 640;
+const GAME_AREA_WIDTH = SCREEN_WIDTH;
+const GAME_AREA_HEIGHT = SCREEN_HEIGHT * 0.85;
+const FPS = 60;
+const PROD_DOMAIN = "private.dev7.jp";
 
-phina.main(function() {
+phina.main(() => {
 
   phina.display.DisplayScene.defaults.$extend({
     width: SCREEN_WIDTH,
@@ -18,8 +19,8 @@ phina.main(function() {
   phina.asset.SoundManager.volume = 0.05;
   phina.asset.SoundManager.musicVolume = 0.05;
 
-  var app = passion.Application();
-  if (location.hostname == "localhost" || location.hostname == "private.dev7.jp") {
+  const app = passion.Application();
+  if (location.hostname == "localhost" || location.hostname == PROD_DOMAIN) {
     app.enableStats();
   }
   app.run();
@@ -45,10 +46,8 @@ phina.main(function() {
 
     ]
   }));
-
 });
-
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Application", {
     superClass: "phina.display.CanvasApp",
@@ -63,21 +62,21 @@ phina.namespace(function() {
       this.fps = FPS;
 
       this.keyboardEx = passion.Keyboard(document);
-      this.keyboardEx.on('keydown', function(e) {
+      this.keyboardEx.on('keydown', e => {
         this.currentScene && this.currentScene.flare('keydown', {
           keyCode: e.keyCode,
         });
-      }.bind(this));
-      this.keyboardEx.on('keyup', function(e) {
+      });
+      this.keyboardEx.on('keyup', e => {
         this.currentScene && this.currentScene.flare('keyup', {
           keyCode: e.keyCode,
         });
-      }.bind(this));
-      this.keyboardEx.on('keypress', function(e) {
+      });
+      this.keyboardEx.on('keypress', e => {
         this.currentScene && this.currentScene.flare('keypress', {
           keyCode: e.keyCode,
         });
-      }.bind(this));
+      });
 
       this.gamepadManager = passion.GamepadManager();
     },
@@ -90,7 +89,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Assets", {
     _static: {
@@ -130,7 +129,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Camera", {
 
@@ -181,7 +180,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Danmaku", {
     _static: {
@@ -189,12 +188,12 @@ phina.namespace(function() {
       config: null,
 
       setup: function(gameScene) {
-        var player = gameScene.player;
-        var bullets = gameScene.bullets;
-        var enemies = gameScene.enemies;
-        var glLayer = gameScene.glLayer;
-        var bulletDrawer = glLayer.bulletDrawer;
-        var enemyDrawer = glLayer.enemyDrawer;
+        const player = gameScene.player;
+        const bullets = gameScene.bullets;
+        const enemies = gameScene.enemies;
+        const glLayer = gameScene.glLayer;
+        const bulletDrawer = glLayer.bulletDrawer;
+        const enemyDrawer = glLayer.enemyDrawer;
         bulletml.Walker.random = function() {
           return gameScene.random.random();
         };
@@ -202,7 +201,7 @@ phina.namespace(function() {
         this.config = {
           target: player,
           createNewBullet: function(runner, spec) {
-            var bullet = bulletDrawer.get();
+            const bullet = bulletDrawer.get();
             if (bullet) {
               bullet.spawn({
                 type: spec.type,
@@ -218,9 +217,9 @@ phina.namespace(function() {
       },
 
       createRunner: function(name) {
-        var bulletmlDoc = phina.asset.AssetManager.get("xml", name);
-        var pattern = bulletml.buildXML(bulletmlDoc.data);
-        var config = passion.Danmaku.config;
+        const bulletmlDoc = phina.asset.AssetManager.get("xml", name);
+        const pattern = bulletml.buildXML(bulletmlDoc.data);
+        const config = passion.Danmaku.config;
         return pattern.createRunner(config);
       },
     },
@@ -232,7 +231,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GameManager", {
     superClass: "phina.util.EventDispatcher",
@@ -254,7 +253,7 @@ phina.namespace(function() {
     update: function(app) {
       while ((this.waitTo === this.frame || this.waitTo === -1) && this.timeline.length > 0) {
         this.waitTo = -1;
-        var task = this.timeline.shift();
+        const task = this.timeline.shift();
 
         // console.log("[task] " + this.frame + " " + task.type);
 
@@ -265,7 +264,7 @@ phina.namespace(function() {
     },
 
     startBgm: function(arg) {
-      // var music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
+      // const music = phina.asset.SoundManager.playMusic("bgm" + arg.bgm, 0, true);
       // if (arg.loopEnd) {
       //   music.loopStart = arg.loopStart;
       //   music.loopEnd = arg.loopEnd;
@@ -283,13 +282,13 @@ phina.namespace(function() {
     },
 
     enemyGroup: function(arg) {
-      var enemy;
+      let enemy;
       if (typeof(arg.enemy) == "string") {
         enemy = { name: enemy };
       } else {
         enemy = arg.enemy;
       }
-      for (var i = 0; i < arg.count; i++) {
+      for (let i = 0; i < arg.count; i++) {
         this.flare("spawnEnemy", {}.$extend(enemy, {
           x: (arg.x || 0) + (arg.dx || 0) * i,
           y: (arg.y || 0) + (arg.dy || 0) * i,
@@ -305,7 +304,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Pool", {
 
@@ -341,7 +340,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Utils", {
     _static: {
@@ -358,16 +357,16 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Background", {
     superClass: "passion.Sprite",
 
     _static: {
       setup: function(glLayer, texture) {
-        var texSrc = phina.asset.AssetManager.get("image", texture);
-        var height = texSrc.domElement.height * GAME_AREA_WIDTH / texSrc.domElement.width;
-        var tex = phina.graphics.Canvas().setSize(512, 512);
+        const texSrc = phina.asset.AssetManager.get("image", texture);
+        const height = texSrc.domElement.height * GAME_AREA_WIDTH / texSrc.domElement.width;
+        const tex = phina.graphics.Canvas().setSize(512, 512);
         tex.context.drawImage(texSrc.domElement, 0, 0, 512, 512);
         phina.asset.AssetManager.set("image", texture + "_bg", tex);
 
@@ -377,13 +376,13 @@ phina.namespace(function() {
           count: 2,
         });
 
-        var bg1 = glLayer.bgDrawer.get("bg");
+        const bg1 = glLayer.bgDrawer.get("bg");
         bg1.spawn(height);
         bg1.x = GAME_AREA_WIDTH / 2;
         bg1.y = GAME_AREA_HEIGHT / 2;
         bg1.addChildTo(glLayer);
 
-        var bg2 = glLayer.bgDrawer.get("bg");
+        const bg2 = glLayer.bgDrawer.get("bg");
         bg2.spawn(height);
         bg2.x = GAME_AREA_WIDTH / 2;
         bg2.y = GAME_AREA_HEIGHT / 2 - height;
@@ -395,7 +394,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function() {
+      this.on("enterframe", e => {
         this.y += 3;
         if (this.y > GAME_AREA_HEIGHT / 2 + this.height) {
           this.y -= this.height * 2;
@@ -422,7 +421,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Bullet", {
     superClass: "phina.app.Element",
@@ -451,8 +450,8 @@ phina.namespace(function() {
     },
 
     spawn: function(option) {
-      var instanceData = this.instanceData;
-      var index = this.index;
+      const instanceData = this.instanceData;
+      const index = this.index;
 
       this.age = 0;
       this.scale = option.scale;
@@ -485,8 +484,8 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      var instanceData = this.instanceData;
-      var index = this.index;
+      const instanceData = this.instanceData;
+      const index = this.index;
 
       this.brightness = 1.5 + Math.sin(this.age * 0.2) * 0.6;
 
@@ -604,7 +603,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
   phina.define("passion.BulletDrawer", {
     superClass: "phigl.InstancedDrawable",
 
@@ -616,7 +615,7 @@ phina.namespace(function() {
     init: function(gl, ext, w, h) {
       this.superInit(gl, ext);
 
-      var shader = phigl.Program(gl)
+      const shader = phigl.Program(gl)
         .attach("bullets.vs")
         .attach("bullets.fs")
         .link();
@@ -666,15 +665,15 @@ phina.namespace(function() {
           "globalScale"
         );
 
-      var instanceUnit = this.instanceStride / 4;
-      
-      var texture = phigl.Texture(gl, "bullets.png");
+      const instanceUnit = this.instanceStride / 4;
+
+      const texture = phigl.Texture(gl, "bullets.png");
 
       this.uniforms.texture.setValue(0).setTexture(texture);
       this.uniforms.globalScale.setValue(1.0);
 
-      var instanceData = this.instanceData = [];
-      for (var i = 0; i < this._count; i++) {
+      const instanceData = this.instanceData = [];
+      for (let i = 0; i < this._count; i++) {
         instanceData.push(
           // position
           0, 0,
@@ -694,17 +693,13 @@ phina.namespace(function() {
       }
       this.setInstanceAttributeData(instanceData);
 
-      var self = this;
       this.pool = Array.range(0, this._count)
-        .map(function(id) {
-          return passion.Bullet(id, instanceData, instanceUnit)
-            .on("removed", function() {
-              self.pool.add(this);
-            });
+        .map(id => {
+          const b = passion.Bullet(id, instanceData, instanceUnit);
+          b.on("removed", () => this.pool.add(b));
+          return b;
         })
-        .toPool(function(lhs, rhs) {
-          return lhs.id - rhs.id;
-        });
+        .toPool((lhs, rhs) => lhs.id - rhs.id);
     },
 
     get: function() {
@@ -716,16 +711,16 @@ phina.namespace(function() {
     },
 
     render: function(uniforms) {
-      var gl = this.gl;
+      const gl = this.gl;
       // gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
       if (uniforms) {
-        uniforms.forIn(function(key, value) {
+        uniforms.forIn((key, value) => {
           if (this.uniforms[key]) this.uniforms[key].value = value;
-        }.bind(this));
+        });
       }
 
       this.draw(this._count);
@@ -733,15 +728,14 @@ phina.namespace(function() {
   });
 
 });
-
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.BulletEraseEffect", {
     superClass: "passion.Sprite",
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function(e) {
+      this.on("enterframe", e => {
         if (e.app.ticker.frame % 2 === 0) {
           this.frameX += 1 / 8;
           if (this.frameX >= 1.0) {
@@ -767,7 +761,7 @@ phina.namespace(function() {
   });
 });
 
- phina.namespace(function() {
+ phina.namespace(() => {
 
    phina.define("passion.CircleButton", {
      superClass: "phina.display.Shape",
@@ -803,7 +797,7 @@ phina.namespace(function() {
      },
 
      postrender: function(canvas) {
-       var c = canvas.context;
+       const c = canvas.context;
 
        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
 
@@ -819,7 +813,7 @@ phina.namespace(function() {
        c.stroke();
 
        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
-       for (var a = 0, b; a < Math.PI * 2;) {
+       for (let a = 0, b; a < Math.PI * 2;) {
          b = Math.randfloat(1.0, 2.0);
          c.beginPath();
          c.arc(0, 0, this.radius * 0.90, a, a + b, false);
@@ -829,7 +823,7 @@ phina.namespace(function() {
        }
 
        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
-       for (var a = 0, b; a < Math.PI * 2;) {
+       for (let a = 0, b; a < Math.PI * 2;) {
          b = Math.randfloat(1.0, 2.0);
          c.beginPath();
          c.arc(0, 0, this.radius * 1.00, a, a + b, false);
@@ -855,7 +849,7 @@ phina.namespace(function() {
    });
  });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Enemy", {
     superClass: "passion.Sprite",
@@ -885,20 +879,12 @@ phina.namespace(function() {
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
 
-      this.on("spawned", function() {
-        this.status = 0;
-      });
-      this.on("activated", function() {
-        this.status = 1;
-      })
-      this.on("entered", function() {
-        this.status = 2;
-      });
-      this.on("killed", function(e) {
-        this.status = 3;
-      });
+      this.on("spawned", e => this.status = 0);
+      this.on("activated", e => this.status = 1)
+      this.on("entered", e => this.status = 2);
+      this.on("killed", e => this.status = 3);
 
-      this.on("removed", function() {
+      this.on("removed", e => {
         this.clear("damaged");
         this.tweener.clear();
         this.motionRunner = null;
@@ -906,7 +892,7 @@ phina.namespace(function() {
         this.status = -1;
         this.waitTime = 0;
       });
-      this.on("enterframe", function() {
+      this.on("enterframe", e => {
         if (this.status === 0) {
           this.waitTime -= 1;
           if (this.waitTime <= 0) {
@@ -970,8 +956,8 @@ phina.namespace(function() {
       this.rot = options.rot || false;
 
       if (!options.muteki) {
-        this.on("damaged", function(e) {
-          var shot = e.shot;
+        this.on("damaged", e => {
+          const shot = e.shot;
           this.hp -= shot.power;
           if (this.hp <= 0) {
             this.flare("killed");
@@ -1006,7 +992,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.ExplosionLarge", {
     superClass: "passion.ParticleEmitter",
@@ -1033,15 +1019,13 @@ phina.namespace(function() {
         .to({
           genPerFrame: 0,
         }, 100)
-        .call(function() {
-          this.remove();
-        }.bind(this));
+        .call(() => this.remove());
     },
     
     onspawnParticle: function(e) {
-      var p = e.particle;
-      var dir = Math.random() * Math.PI * 2;
-      var dst = Math.randint(2, 25);
+      const p = e.particle;
+      const dir = Math.random() * Math.PI * 2;
+      const dst = Math.randint(2, 25);
       p.tweener
         .clear()
         .to({
@@ -1053,15 +1037,13 @@ phina.namespace(function() {
           blue: 0.0,
           alpha: 0
         }, 400)
-        .call(function() {
-          this.remove();
-        }.bind(p));
+        .call(() => p.remove());
     },
 
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.ExplosionSmall", {
     superClass: "passion.ParticleEmitter",
@@ -1088,15 +1070,13 @@ phina.namespace(function() {
         .to({
           genPerFrame: 0,
         }, 150)
-        .call(function() {
-          this.remove();
-        }.bind(this));
+        .call(() => this.remove());
     },
     
     onspawnParticle: function(e) {
-      var p = e.particle;
-      var dir = Math.random() * Math.PI * 2;
-      var dst = Math.randint(2, 25);
+      const p = e.particle;
+      const dir = Math.random() * Math.PI * 2;
+      const dst = Math.randint(2, 25);
       p.tweener
         .clear()
         .to({
@@ -1108,15 +1088,13 @@ phina.namespace(function() {
           blue: 0.0,
           alpha: 0
         }, 400, "easeOutQuad")
-        .call(function() {
-          this.remove();
-        }.bind(p));
+        .call(() => p.remove());
     },
 
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GLLayer", {
     superClass: "phina.display.Layer",
@@ -1154,8 +1132,8 @@ phina.namespace(function() {
       this.domElement.width = this.width * passion.GLLayer.quality;
       this.domElement.height = this.height * passion.GLLayer.quality;
 
-      var gl = this.gl = passion.GLLayer.GL;
-      var extInstancedArrays = phigl.Extensions.getInstancedArrays(gl);
+      const gl = this.gl = passion.GLLayer.GL;
+      const extInstancedArrays = phigl.Extensions.getInstancedArrays(gl);
 
       gl.viewport(0, 0, this.domElement.width, this.domElement.height);
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -1164,12 +1142,12 @@ phina.namespace(function() {
       gl.enable(gl.BLEND);
       gl.disable(gl.DEPTH_TEST);
 
-      var cw = this.domElement.width;
-      var ch = this.domElement.height;
-      var w = this.width;
-      var h = this.height;
-      var sw = Math.pow(2, ~~Math.log2(cw) + 1);
-      var sh = Math.pow(2, ~~Math.log2(ch) + 1);
+      const cw = this.domElement.width;
+      const ch = this.domElement.height;
+      const w = this.width;
+      const h = this.height;
+      const sw = Math.pow(2, ~~Math.log2(cw) + 1);
+      const sh = Math.pow(2, ~~Math.log2(ch) + 1);
 
       this.camera = passion.Camera()
         .setPosition(w * 0.5, h * 0.5, 2000)
@@ -1203,12 +1181,12 @@ phina.namespace(function() {
     draw: function(canvas) {
       if (!this.ready) return;
 
-      var gl = this.gl;
-      var image = this.domElement;
-      var cw = image.width;
-      var ch = image.height;
+      const gl = this.gl;
+      const image = this.domElement;
+      const cw = image.width;
+      const ch = image.height;
 
-      var ou = this.camera.uniformValues();
+      const ou = this.camera.uniformValues();
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -1222,7 +1200,7 @@ phina.namespace(function() {
 
       gl.flush();
 
-      var p = passion.GLLayer.padding;
+      const p = passion.GLLayer.padding;
       canvas.context.drawImage(image,
         0, 0, cw, ch,
         this.width * p, this.height * p, this.width * (1 - p * 2), this.height * (1 - p * 2)
@@ -1243,9 +1221,9 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
-  var c = 0;
+  const c = 0;
 
   phina.define("passion.LaserMazzleFlash", {
     superClass: "passion.Sprite",
@@ -1270,9 +1248,7 @@ phina.namespace(function() {
         .to({
           alpha: 0
         }, 300)
-        .call(function() {
-          this.remove();
-        }.bind(this));
+        .call(() => this.remove());
 
       c += 0.4;
 
@@ -1282,7 +1258,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.ParticleEmitter", {
     superClass: "phina.app.Element",
@@ -1305,8 +1281,8 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      for (var i = 0; i < this.genPerFrame; i++) {
-        var particle = this.drawer.get(this.objName);
+      for (let i = 0; i < this.genPerFrame; i++) {
+        const particle = this.drawer.get(this.objName);
         if (particle) {
           particle
             .spawn({}.$extend(this.spawnOptions, {
@@ -1327,17 +1303,14 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("removed", function() {
-        // this.clear("enterframe");
-        this.tweener.clear();
-      });
+      this.on("removed", e => this.tweener.clear());
     },
 
   });
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Player", {
     superClass: "passion.Sprite",
@@ -1349,15 +1322,15 @@ phina.namespace(function() {
           texture: "texture0.png",
         });
 
-        var player = glLayer.playerDrawer.get("player");
+        const player = glLayer.playerDrawer.get("player");
         player.spawn(spec);
 
-        player.on("enterframe", function(e) {
+        player.on("enterframe", e => {
           if (e.app.ticker.frame % 2 !== 0) return;
 
-          var hex1 = glLayer.effectDrawer.get("particle");
-          var hex2 = glLayer.effectDrawer.get("particle");
-          var options = {
+          const hex1 = glLayer.effectDrawer.get("particle");
+          const hex2 = glLayer.effectDrawer.get("particle");
+          const options = {
             x: player.x - 8,
             y: player.y + 15,
             scaleX: 18,
@@ -1371,30 +1344,35 @@ phina.namespace(function() {
             blue: 1.0,
             alpha: 1.0,
           };
-          var oefl = function() {
-            this.y += 2;
-            this.alpha *= 0.80;
-            if (this.alpha < 0.01) {
-              this.remove();
-            }
-          };
 
           if (hex1) {
             options.x = player.x - 8;
             hex1.spawn(options);
-            hex1.onenterframe = oefl;
+            hex1.onenterframe = e => {
+              hex1.y += 2;
+              hex1.alpha *= 0.80;
+              if (hex1.alpha < 0.01) {
+                hex1.remove();
+              }
+            };
             hex1.addChildTo(glLayer);
           }
 
           if (hex2) {
             options.x = player.x + 8;
             hex2.spawn(options);
-            hex2.onenterframe = oefl;
+            hex2.onenterframe = e => {
+              hex2.y += 2;
+              hex2.alpha *= 0.80;
+              if (hex2.alpha < 0.01) {
+                hex2.remove();
+              }
+            };
             hex2.addChildTo(glLayer);
           }
         });
 
-        var aura = glLayer.effectDrawer.get("particle");
+        const aura = glLayer.effectDrawer.get("particle");
         aura.spawn({
           x: player.x,
           y: player.y,
@@ -1410,12 +1388,12 @@ phina.namespace(function() {
           alpha: 0.2,
         });
         aura.addChildTo(glLayer);
-        aura.on("enterframe", function() {
-          this.x = player.x;
-          this.y = player.y;
+        aura.on("enterframe", e => {
+          aura.x = player.x;
+          aura.y = player.y;
         });
 
-        var centerMarker = glLayer.topEffectDrawer.get("particle");
+        const centerMarker = glLayer.topEffectDrawer.get("particle");
         centerMarker.spawn({
           x: player.x,
           y: player.y,
@@ -1431,16 +1409,16 @@ phina.namespace(function() {
           alpha: 1.0,
         });
         centerMarker.addChildTo(player);
-        centerMarker.on("enterframe", function() {
-          this.x = player.x;
-          this.y = player.y;
-          this.rotation += 0.1;
+        centerMarker.on("enterframe", e => {
+          centerMarker.x = player.x;
+          centerMarker.y = player.y;
+          centerMarker.rotation += 0.1;
         });
 
         return player;
       },
     },
-    
+
     hp: 0,
 
     _roll: 0,
@@ -1453,7 +1431,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function(e) {
+      this.on("enterframe", e => {
         this.controll(e.app);
         if (this.mutekiTime > 0) this.mutekiTime -= 1;
       });
@@ -1473,16 +1451,17 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
-      
+
       this.hp = spec.hp;
 
       return this;
     },
 
     controll: function(app) {
+      const p = app.pointer;
+      const dp = p.deltaPosition;
+
       if (this.controllable) {
-        var p = app.pointer;
-        var dp = p.deltaPosition;
 
         if (phina.isMobile() || p.getPointing()) {
           this.x += dp.x * 2;
@@ -1506,7 +1485,7 @@ phina.namespace(function() {
       }
 
       if (this.fireable) {
-        var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
+        const touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
         if (touch && this.heat <= 0) {
           this.flare("fireShot");
           this.heat = this.heatByShot;
@@ -1519,7 +1498,7 @@ phina.namespace(function() {
     ondamaged: function(e) {
       if (this.mutekiTime > 0) return;
 
-      var another = e.another;
+      const another = e.another;
     },
 
     _accessor: {
@@ -1529,7 +1508,7 @@ phina.namespace(function() {
         },
         set: function(v) {
           this._roll = Math.clamp(v, -3, 3);
-          var r = ~~this._roll;
+          const r = ~~this._roll;
           this.frameX = (r + 3) / 8;
         },
       },
@@ -1537,8 +1516,7 @@ phina.namespace(function() {
 
   });
 });
-
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.SpritDrawer", {
     superClass: "phigl.InstancedDrawable",
@@ -1552,7 +1530,7 @@ phina.namespace(function() {
       this.objTypes = [];
       this.objParameters = {};
 
-      var shader = phigl.Program(gl)
+      const shader = phigl.Program(gl)
         .attach("sprites.vs")
         .attach("sprites.fs")
         .link();
@@ -1601,7 +1579,7 @@ phina.namespace(function() {
           "globalScale"
         );
 
-      var instanceStride = this.instanceStride / 4;
+      const instanceStride = this.instanceStride / 4;
 
       this.uniforms.globalScale.setValue(1.0);
     },
@@ -1615,16 +1593,16 @@ phina.namespace(function() {
       }, options);
 
       if (!this.objTypes.contains(objName)) {
-        var instanceStride = this.instanceStride / 4;
+        const instanceStride = this.instanceStride / 4;
 
         this.objTypes.push(objName);
-        var objParameter = this.objParameters[objName] = {
+        const objParameter = this.objParameters[objName] = {
           count: options.count,
           instanceVbo: phigl.Vbo(this.gl, this.gl.DYNAMIC_DRAW),
           texture: phigl.Texture(this.gl, options.texture),
           pool: null,
           additiveBlending: options.additiveBlending,
-          instanceData: Array.range(options.count).map(function(i) {
+          instanceData: Array.range(options.count).map(i => {
             return [
               // visible
               0,
@@ -1642,12 +1620,11 @@ phina.namespace(function() {
           }).flatten(),
         };
 
-        var ObjClass = phina.using(options.className);
-        objParameter.pool = Array.range(options.count).map(function(id) {
-          return ObjClass(id, objParameter.instanceData, instanceStride)
-            .on("removed", function() {
-              objParameter.pool.push(this);
-            });
+        const ObjClass = phina.using(options.className);
+        objParameter.pool = Array.range(options.count).map(id => {
+          const s = ObjClass(id, objParameter.instanceData, instanceStride);
+          s.on("removed", () => objParameter.pool.push(s));
+          return s;
         });
       }
     },
@@ -1661,20 +1638,19 @@ phina.namespace(function() {
     render: function(uniforms) {
       if (this.objTypes.length === 0) return;
 
-      var gl = this.gl;
+      const gl = this.gl;
       // gl.enable(gl.BLEND);
       // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
 
       if (uniforms) {
-        uniforms.forIn(function(key, value) {
+        uniforms.forIn((key, value) => {
           if (this.uniforms[key]) this.uniforms[key].value = value;
-        }.bind(this));
+        });
       }
-      var self = this;
-      this.objTypes.forEach(function(objName) {
-        var objParameter = self.objParameters[objName];
+      this.objTypes.forEach(objName => {
+        const objParameter = this.objParameters[objName];
 
         if (objParameter.additiveBlending) {
           gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
@@ -1682,18 +1658,18 @@ phina.namespace(function() {
           gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         }
 
-        self.setInstanceAttributeVbo(
+        this.setInstanceAttributeVbo(
           objParameter.instanceVbo.set(objParameter.instanceData)
         );
-        self.uniforms.texture.setValue(0).setTexture(objParameter.texture);
-        self.draw(objParameter.count);
+        this.uniforms.texture.setValue(0).setTexture(objParameter.texture);
+        this.draw(objParameter.count);
       });
     },
   });
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Sprite", {
     superClass: "phina.app.Element",
@@ -1730,8 +1706,8 @@ phina.namespace(function() {
         alpha: 1.0,
       });
 
-      // var index = this.index;
-      // var instanceData = this.instanceData;
+      // const index = this.index;
+      // const instanceData = this.instanceData;
 
       this.visible = options.visible;
       this.x = options.x;
@@ -1888,7 +1864,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.BossHpGauge", {
     superClass: "phina.display.Shape",
@@ -1899,10 +1875,10 @@ phina.namespace(function() {
       this.strokeWidth = 2;
       this.fill = null;
 
-      var canvas = phina.graphics.Canvas().setSize(this.width, this.height);
-      var c = canvas.context;
+      const canvas = phina.graphics.Canvas().setSize(this.width, this.height);
+      const c = canvas.context;
 
-      var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      const sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
       sg.addColorStop(0.00, "hsla(190, 100%, 30%, 1.0)");
       sg.addColorStop(0.38, "hsla(190, 100%, 30%, 1.0)");
       sg.addColorStop(0.48, "hsla(190, 100%, 80%, 1.0)");
@@ -1913,7 +1889,7 @@ phina.namespace(function() {
     },
 
     prerender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2.05, -this.height / 3);
@@ -1932,7 +1908,7 @@ phina.namespace(function() {
     },
 
     postrender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-3 + -this.width / 2 + 5, -3 + -this.height / 3);
@@ -1967,9 +1943,9 @@ phina.namespace(function() {
     },
 
     clip: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
-      var v = Math.clamp(this.value / this.maxValue, 0, 1);
+      const v = Math.clamp(this.value / this.maxValue, 0, 1);
 
       c.beginPath();
       c.moveTo(-this.width / 2, -this.height / 2);
@@ -1986,7 +1962,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.UIFrame", {
     superClass: "phina.display.Shape",
@@ -1998,7 +1974,7 @@ phina.namespace(function() {
     },
 
     prerender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2 + 10, -this.height / 2);
@@ -2012,7 +1988,7 @@ phina.namespace(function() {
       c.lineTo(-this.width / 2, 10 - this.height / 2);
       c.closePath();
 
-      var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      const sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
       sg.addColorStop(0.00, "hsla(190, 100%, 30%, 0.8)");
       sg.addColorStop(0.38, "hsla(190, 100%, 30%, 0.8)");
       sg.addColorStop(0.48, "hsla(190, 100%, 80%, 0.8)");
@@ -2021,7 +1997,7 @@ phina.namespace(function() {
       sg.addColorStop(1.00, "hsla(190, 100%, 30%, 0.8)");
       this.stroke = sg;
 
-      var fg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      const fg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
       fg.addColorStop(0.00, "hsla(210, 100%, 30%, 0.2)");
       fg.addColorStop(0.38, "hsla(210, 100%, 30%, 0.2)");
       fg.addColorStop(0.48, "hsla(210, 100%, 80%, 0.2)");
@@ -2032,7 +2008,7 @@ phina.namespace(function() {
     },
 
     postrender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2 + 10 - 3, -this.height / 2 - 3);
@@ -2053,7 +2029,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.UIHeadLabel", {
     superClass: "phina.display.Shape",
@@ -2082,8 +2058,8 @@ phina.namespace(function() {
     },
 
     prerender: function(canvas) {
-      var c = canvas.context;
-      var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+      const c = canvas.context;
+      const fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
       fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.2)");
       fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.2)");
       fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.2)");
@@ -2092,7 +2068,7 @@ phina.namespace(function() {
     },
 
     postrender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2, this.height / 2);
@@ -2120,7 +2096,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.UIHead2Label", {
     superClass: "phina.display.Shape",
@@ -2148,16 +2124,16 @@ phina.namespace(function() {
     },
 
     prerender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
-      var fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
+      const fg = c.createLinearGradient(0, -this.height / 2, 0, this.height / 2);
       fg.addColorStop(0.00, "hsla(190, 100%, 50%, 0.2)");
       fg.addColorStop(0.40, "hsla(190, 100%, 30%, 0.2)");
       fg.addColorStop(0.60, "hsla(190, 100%, 30%, 0.2)");
       fg.addColorStop(1.00, "hsla(190, 100%, 50%, 0.2)");
       this.fill = fg;
 
-      var sg = c.createLinearGradient(-this.width / 2, 0, this.width / 2, 0);
+      const sg = c.createLinearGradient(-this.width / 2, 0, this.width / 2, 0);
       sg.addColorStop(0.00, "hsla(190, 100%, 60%, 0.0)");
       sg.addColorStop(0.30, "hsla(190, 100%, 60%, 1.0)");
       sg.addColorStop(0.70, "hsla(190, 100%, 60%, 1.0)");
@@ -2166,7 +2142,7 @@ phina.namespace(function() {
     },
 
     postrender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2, this.height / 2);
@@ -2190,7 +2166,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.UILayer", {
     superClass: "phina.display.DisplayElement",
@@ -2337,7 +2313,7 @@ phina.namespace(function() {
             className: "phina.display.DisplayElement",
             x: GAME_AREA_WIDTH * 0.5,
             y: GAME_AREA_HEIGHT * 0.5,
-            children: "Ready".split("").map(function(c, i) {
+            children: "Ready".split("").map((c, i) => {
               return {
                 className: "phina.display.Label",
                 arguments: {
@@ -2366,21 +2342,20 @@ phina.namespace(function() {
         },
       });
 
-      var self = this;
-      gameManager.on("updateScore", function() {
-        self.scoreBg.scoreLabel.text = passion.Utils.sep(this.score);
-        if (this.highScore < this.score) {
-          self.scoreBg.highscoreLabel.text = passion.Utils.sep(this.highScore);
+      gameManager.on("updateScore", e => {
+        this.scoreBg.scoreLabel.text = passion.Utils.sep(gameManager.score);
+        if (gameManager.highScore < gameManager.score) {
+          this.scoreBg.highscoreLabel.text = passion.Utils.sep(gameManager.highScore);
         }
       });
-      gameManager.on("damaged", function(e) {});
+      gameManager.on("damaged", e => {});
     },
 
     showReadyGo: function(callback) {
       this.readyLabels.visible = true;
       this.goLabel.visible = true;
 
-      this.readyLabels.children.forEach(function(label, i) {
+      this.readyLabels.children.forEach((label, i) => {
         label.tweener
           .set({
             scaleX: 4,
@@ -2418,19 +2393,19 @@ phina.namespace(function() {
           scaleY: 5,
           alpha: 0,
         }, 200)
-        .call(function() {
+        .call(() => {
           this.readyLabels.visible = false;
           this.goLabel.visible = false;
           callback();
-        }.bind(this));
+        });
     },
 
     damageTexture: function() {
-      var c = phina.graphics.Canvas();
-      var p = passion.GLLayer.padding;
+      const c = phina.graphics.Canvas();
+      const p = passion.GLLayer.padding;
       c.setSize(GAME_AREA_WIDTH * (1 - p * 2), GAME_AREA_HEIGHT * (1 - p * 2));
       c.clearColor("transparent");
-      var g = c.context.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, c.height / 2)
+      const g = c.context.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, c.height / 2)
       g.addColorStop(0, "rgba(255, 0, 0, 0.0)");
       g.addColorStop(1, "rgba(255, 0, 0, 1.0)");
       c.fillStyle = g;
@@ -2449,7 +2424,7 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.BulletRunning", {
     superClass: "phina.accessory.Accessory",
@@ -2485,16 +2460,16 @@ phina.namespace(function() {
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GameSceneBg", {
     _static: {
       drawBgTexture: function() {
-        var bgTexture = phina.graphics.Canvas();
+        const bgTexture = phina.graphics.Canvas();
         bgTexture.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         bgTexture.clearColor("hsla(190, 100%, 95%, 0.05)");
-        (150).times(function(i, j) {
-          var y = (SCREEN_HEIGHT * 1.5) / j * i;
+        (150).times((i, j) => {
+          let y = (SCREEN_HEIGHT * 1.5) / j * i;
           bgTexture.strokeStyle = "hsla(190, 100%, 95%, 0.1)";
           bgTexture.strokeLines(
             SCREEN_WIDTH * 0.0, y - 10,
@@ -2540,7 +2515,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GamepadManager", {
     superClass: "phina.input.GamepadManager",
@@ -2587,7 +2562,7 @@ phina.namespace(function() {
     },
 
     _updateEvery: function() {
-      var stick = this.getStickDirection();
+      const stick = this.getStickDirection();
 
       if (this.getKeyUp("left") || this.beforeStickX < -0.5 && -0.5 <= stick.x) {
         this._leftCount = 0;
@@ -2617,29 +2592,29 @@ phina.namespace(function() {
     _accessor: {
       leftPressing: {
         get: function() {
-          var count = this._leftCount;
-          var current = this.getKey("left") || this.getStickDirection().x < -0.5;
+          const count = this._leftCount;
+          const current = this.getKey("left") || this.getStickDirection().x < -0.5;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       rightPressing: {
         get: function() {
-          var count = this._rightCount;
-          var current = this.getKey("right") || 0.5 < this.getStickDirection().x;
+          const count = this._rightCount;
+          const current = this.getKey("right") || 0.5 < this.getStickDirection().x;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       upPressing: {
         get: function() {
-          var count = this._upCount;
-          var current = this.getKey("up") || this.getStickDirection().y < -0.5;
+          const count = this._upCount;
+          const current = this.getKey("up") || this.getStickDirection().y < -0.5;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       downPressing: {
         get: function() {
-          var count = this._downCount;
-          var current = this.getKey("down") || 0.5 < this.getStickDirection().y;
+          const count = this._downCount;
+          const current = this.getKey("down") || 0.5 < this.getStickDirection().y;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
@@ -2649,7 +2624,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Keyboard", {
     superClass: "phina.input.Keyboard",
@@ -2691,29 +2666,29 @@ phina.namespace(function() {
     _accessor: {
       leftPressing: {
         get: function() {
-          var count = this._leftCount;
-          var current = this.getKey("left");
+          const count = this._leftCount;
+          const current = this.getKey("left");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       rightPressing: {
         get: function() {
-          var count = this._rightCount;
-          var current = this.getKey("right");
+          const count = this._rightCount;
+          const current = this.getKey("right");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       upPressing: {
         get: function() {
-          var count = this._upCount;
-          var current = this.getKey("up");
+          const count = this._upCount;
+          const current = this.getKey("up");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       downPressing: {
         get: function() {
-          var count = this._downCount;
-          var current = this.getKey("down");
+          const count = this._downCount;
+          const current = this.getKey("down");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
@@ -2725,7 +2700,53 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
+
+  phina.define("passion.PointerLock", {
+    superClass: "phina.util.EventDispatcher",
+
+    domElement: null,
+
+    init: function(domElement) {
+      this.superInit();
+      this.domElement = domElement;
+      if ("onpointerlockchange" in this.domElement) {
+        this.domElement.addEventListener("pointerlockchange", e => {
+          this.flare("change");
+        }, false);
+      } else {
+        this.domElement.addEventListener("mozpointerlockchange", e => {
+          this.flare("change");
+        }, false);
+      }
+
+      this.on("change", e => console.log("change!!"));
+    },
+
+    // https://developer.mozilla.org/ja/docs/API/Pointer_Lock_API
+    lock: function() {
+      this.domElement.requestPointerLock = this.domElement.requestPointerLock || this.domElement.mozRequestPointerLock;
+      this.domElement.requestPointerLock();
+    },
+
+    exit: function() {
+      this.domElement.exitPointerLock = this.domElement.exitPointerLock || this.domElement.mozExitPointerLock;
+      this.domElement.exitPointerLock();
+    },
+
+  });
+
+  phina.define("passion.LockedMouse", {
+    superClass: "phina.input.Input",
+
+    init: function(domElement) {
+      this.superInit(domElement);
+    },
+  });
+
+});
+
+phina.namespace(() => {
 
   phina.define("passion.GameScene", {
     superClass: "phina.display.DisplayScene",
@@ -2741,11 +2762,11 @@ phina.namespace(function() {
     init: function(options) {
       this.superInit(options);
 
-      var gameScene = this;
-      var stageData = phina.asset.AssetManager.get("json", "stage").data;
+      const gameScene = this;
+      const stageData = phina.asset.AssetManager.get("json", "stage").data;
 
-      var r = phina.util.Random(12345);
-      var randomFunc = function() {
+      const r = phina.util.Random(12345);
+      const randomFunc = function() {
         return r.random();
       };
       bulletml.Walker.random = randomFunc;
@@ -2777,8 +2798,8 @@ phina.namespace(function() {
 
       this.uiLayer.tweener.clear().fadeIn(500);
 
-      var gameManager = this.gameManager;
-      var glLayer = this.glLayer;
+      const gameManager = this.gameManager;
+      const glLayer = this.glLayer;
 
       glLayer.effectDrawer.addObjType("particle", {
         texture: "texture0.png",
@@ -2801,44 +2822,36 @@ phina.namespace(function() {
       passion.Background.setup(glLayer, "bg", 1069);
 
       // 自機
-      var playerSpec = {
+      const playerSpec = {
         hp: 100,
       };
       this.player = passion.Player.setup(glLayer, playerSpec).addChildTo(glLayer);
 
       // ショット
-      var shotClassName = "passion.WideShot2";
-      var ShotClass = phina.using(shotClassName);
+      const shotClassName = "passion.WideShot2";
+      const ShotClass = phina.using(shotClassName);
       ShotClass.setup(shotClassName, glLayer, this.player, this.shots, gameScene);
 
       // 敵
       stageData.enemies
-        .map(function(enemy) {
-          return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
-        })
-        .map(function(enemyData) {
-          return enemyData.texture;
-        })
+        .map(enemy => phina.asset.AssetManager.get("json", enemy + ".enemy").data)
+        .map(enemyData => enemyData.texture)
         .uniq()
-        .forEach(function(textureName) {
+        .forEach(textureName => {
           glLayer.enemyDrawer.addObjType(textureName, {
             className: "passion.Enemy",
             texture: textureName,
             count: 50,
           });
-          glLayer.enemyDrawer.objParameters[textureName].pool.forEach(function(enemy) {
-            enemy.on("removed", function() {
-              enemies.erase(this);
-            });
-            enemy.on("killed", function() {
-              this.playKilledEffect(gameScene);
-            });
+          glLayer.enemyDrawer.objParameters[textureName].pool.forEach(enemy => {
+            enemy.on("removed", e => enemies.erase(enemy));
+            enemy.on("killed", e => enemy.playKilledEffect(gameScene));
           });
         });
-      var enemies = this.enemies;
-      gameManager.on("spawnEnemy", function(e) {
-        var enemyData = phina.asset.AssetManager.get("json", e.name + ".enemy").data;
-        var enemy = glLayer.enemyDrawer.get(enemyData.texture)
+      const enemies = this.enemies;
+      gameManager.on("spawnEnemy", e => {
+        const enemyData = phina.asset.AssetManager.get("json", e.name + ".enemy").data;
+        const enemy = glLayer.enemyDrawer.get(enemyData.texture)
         if (enemy) {
           enemy.spawn({}.$extend(enemyData, e, { x: e.x * GAME_AREA_WIDTH, y: e.y * GAME_AREA_HEIGHT }));
           enemy.addChildTo(glLayer);
@@ -2848,23 +2861,21 @@ phina.namespace(function() {
 
       // 弾
       passion.Danmaku.setup(this);
-      var bullets = this.bullets;
-      this.on("spawnBullet", function(e) {
-        var bullet = e.bullet;
+      const bullets = this.bullets;
+      this.on("spawnBullet", e => {
+        const bullet = e.bullet;
         bullet.addChildTo(glLayer);
         bullets.push(bullet);
       });
-      glLayer.bulletDrawer.pool.array.forEach(function(bullet) {
-        bullet.on("removed", function() {
-          bullets.erase(this);
-        });
-        bullet.on("erased", function() {
-          var effect = glLayer.topEffectDrawer.get("BulletEraseEffect");
+      glLayer.bulletDrawer.pool.array.forEach(bullet => {
+        bullet.on("removed", e => bullets.erase(e));
+        bullet.on("erased", e => {
+          const effect = glLayer.topEffectDrawer.get("BulletEraseEffect");
           if (effect) {
             effect
               .spawn({
-                x: this.x,
-                y: this.y,
+                x: bullet.x,
+                y: bullet.y,
                 frameY: 0,
               })
               .addChildTo(glLayer);
@@ -2872,9 +2883,7 @@ phina.namespace(function() {
         });
       });
 
-      this.uiLayer.showReadyGo(function() {
-        gameScene.status = 0;
-      });
+      this.uiLayer.showReadyGo(() => gameScene.status = 0);
     },
 
     update: function(app) {
@@ -2885,8 +2894,8 @@ phina.namespace(function() {
           break;
       }
 
-      var kb = app.keyboardEx;
-      var gp = app.gamepadManager.get();
+      const kb = app.keyboardEx;
+      const gp = app.gamepadManager.get();
       if (gp.leftPressing || kb.leftPressing) console.log("left" + Date.now());
       if (gp.rightPressing || kb.rightPressing) console.log("right" + Date.now());
       if (gp.upPressing || kb.upPressing) console.log("up" + Date.now());
@@ -2903,12 +2912,12 @@ phina.namespace(function() {
     _hitTestItemPlayer: function() {},
 
     _hitTestEnemyShot: function() {
-      var es = this.enemies.clone();
-      var ss = this.shots.clone();
-      for (var i = 0; i < es.length; i++) {
-        var e = es[i];
-        for (var j = 0; j < ss.length; j++) {
-          var s = ss[j];
+      const es = this.enemies.clone();
+      const ss = this.shots.clone();
+      for (let i = 0; i < es.length; i++) {
+        const e = es[i];
+        for (let j = 0; j < ss.length; j++) {
+          const s = ss[j];
           if (e.isHit(s)) {
             e.flare("damaged", { shot: s });
             s.flare("hit", { enemy: e });
@@ -2918,10 +2927,10 @@ phina.namespace(function() {
     },
 
     _hitTestEnemyPlayer: function() {
-      var es = this.enemies.clone();
-      var p = this.player;
-      for (var i = 0; i < es.length; i++) {
-        var e = es[i];
+      const es = this.enemies.clone();
+      const p = this.player;
+      for (let i = 0; i < es.length; i++) {
+        const e = es[i];
         if (e.isHit(p)) {
           p.flare("damaged", { another: e });
         }
@@ -2929,10 +2938,10 @@ phina.namespace(function() {
     },
 
     _hitTestBulletPlayer: function() {
-      var bs = this.bullets.clone();
-      var p = this.player;
-      for (var i = 0; i < bs.length; i++) {
-        var b = bs[i];
+      const bs = this.bullets.clone();
+      const p = this.player;
+      for (let i = 0; i < bs.length; i++) {
+        const b = bs[i];
         if (b.isHit(p)) {
           p.flare("damaged", { another: b });
           b.remove();
@@ -2941,30 +2950,29 @@ phina.namespace(function() {
     },
 
     eraseAllBullets: function() {
-      this.bullets.clone().forEach(function(bullet) {
+      this.bullets.clone().forEach(bullet => {
         bullet.flare("erased");
         bullet.remove();
       });
     },
 
     onspawnItem: function(e) {
-      var item = e.item;
+      const item = e.item;
       item.addChildTo(this.glLayer);
       this.items.push(item);
     },
 
     onspawnParticle: function(e) {
-      var EmitterClass = phina.using(e.className);
-      var emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);
+      const EmitterClass = phina.using(e.className);
+      const emitter = EmitterClass(this.glLayer, this.glLayer.topEffectDrawer);
       emitter.x = e.x;
       emitter.y = e.y;
       emitter.addChildTo(this.glLayer);
-    }
+    },
 
   });
 });
-
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.StageAssetLoadScene", {
     superClass: "phina.display.DisplayScene",
@@ -3007,86 +3015,67 @@ phina.namespace(function() {
     },
 
     update: function(app) {
-      var t = Math.floor(app.ticker.frame * 0.1) % 4;
-      var s = "downloading";
-      t.times(function() { s += "." });
+      let t = Math.floor(app.ticker.frame * 0.1) % 4;
+      let s = "downloading";
+      t.times(() =>  s += ".");
       s.paddingRight("downloading".length + 3, " ");
       this.label.text = s;
     },
 
     step0: function(stageName) {
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         json: { "stage": "./asset/stage/" + stageName + ".json" }
       });
       this.label.tweener.fadeIn(1000);
-      loader.on("load", function() {
-        this.step1();
-      }.bind(this));
+      loader.on("load", e => this.step1());
 
       // this.label.text = "step0";
     },
 
     step1: function() {
-      var stageData = phina.asset.AssetManager.get("json", "stage").data;
+      const stageData = phina.asset.AssetManager.get("json", "stage").data;
       // console.log(stageData);
 
-      var enemies = {};
-      stageData.enemies.forEach(function(enemy) {
-        enemies[enemy + ".enemy"] = "./asset/enemy/" + enemy + ".json";
-      });
+      const enemies = {};
+      stageData.enemies.forEach(enemy => enemies[enemy + ".enemy"] = "./asset/enemy/" + enemy + ".json");
       
-      var sounds = {};
-      stageData.bgm.forEach(function(b, idx) {
-        sounds["bgm" + idx] = "./asset/sound/" + b.bgm + ".mp3";
-      });
+      const sounds = {};
+      stageData.bgm.forEach((b, idx) => sounds["bgm" + idx] = "./asset/sound/" + b.bgm + ".mp3");
 
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         json: enemies,
         sound: sounds,
         image: { "bg": "./asset/image/" + stageData.bg + ".png" },
       });
-      loader.on("load", function() {
-        this.step2(stageData);
-      }.bind(this));
+      loader.on("load", e => this.step2(stageData));
 
       // this.label.text = "step1";
     },
 
     step2: function(stageData) {
-      var textures = {};
+      const textures = {};
       stageData.enemies
-        .map(function(enemy) {
-          return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
-        })
-        .map(function(enemyData) {
-          // console.log(enemyData);
-          return enemyData.texture;
-        })
+        .map(enemy => phina.asset.AssetManager.get("json", enemy + ".enemy").data)
+        .map(enemyData => enemyData.texture)
         .uniq()
-        .forEach(function(texture) {
-          textures[texture] = "./asset/image/" + texture + ".png";
-        });
+        .forEach(texture => textures[texture] = "./asset/image/" + texture + ".png");
 
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         image: textures,
       });
-      loader.on("load", function() {
-        this.step3(stageData);
-      }.bind(this));
+      loader.on("load", () => this.step3(stageData));
 
       // this.label.text = "step2";
     },
 
     step3: function(stageData) {
-      var xmls = {};
+      const xmls = {};
       stageData.enemies
-        .map(function(enemy) {
-          return phina.asset.AssetManager.get("json", enemy + ".enemy").data;
-        })
-        .forEach(function(enemyData) {
+        .map(enemy => phina.asset.AssetManager.get("json", enemy + ".enemy").data)
+        .forEach(enemyData => {
           if (enemyData.motion) {
             xmls["motion/" + enemyData.motion] = "./asset/motion/" + enemyData.motion + ".xml";
           }
@@ -3094,7 +3083,7 @@ phina.namespace(function() {
             xmls["attack/" + enemyData.attack] = "./asset/attack/" + enemyData.attack + ".xml";
           }
         });
-      stageData.timeline.forEach(function(task) {
+      stageData.timeline.forEach(task => {
         if (task.arguments.motion) {
           xmls["motion/" + task.arguments.motion] = "./asset/motion/" + task.arguments.motion + ".xml";
         }
@@ -3111,28 +3100,24 @@ phina.namespace(function() {
         }
       });
 
-      var loader = phina.asset.AssetLoader();
+      const loader = phina.asset.AssetLoader();
       loader.load({
         xml: xmls,
       });
-      loader.on("load", function() {
-        this.step4();
-      }.bind(this));
+      loader.on("load", () => this.step4());
 
       // this.label.text = "step3";
     },
 
     step4: function() {
       this.label.tweener.clear().fadeOut(100);
-      this.bg1.tweener.fadeOut(500).call(function() {
-        this.app.popScene();
-      }.bind(this));
+      this.bg1.tweener.fadeOut(500).call(() => this.app.popScene());
     },
 
   });
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Shot", {
     superClass: "passion.Sprite",
@@ -3144,7 +3129,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function(e) {
+      this.on("enterframe", e => {
         this.bx = this.x;
         this.by = this.y;
         this.controll(e.app);
@@ -3162,7 +3147,7 @@ phina.namespace(function() {
 
     _static: {
       commonSetup: function(shotClassName, glLayer, player, shots, gameScene) {
-        var ShotClass = this;
+        const ShotClass = this;
         glLayer.shotDrawer.addObjType("shot", {
           className: shotClassName,
           texture: ShotClass.texture || "bullets.png",
@@ -3180,14 +3165,14 @@ phina.namespace(function() {
           glLayer.effectDrawer.addObjType("mazzleFlashEffect", ShotClass.mazzleFlashEffect);
         }
 
-        var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
+        const shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
         player.heatByShot = ShotClass.heatByShot;
-        player.on("fireShot", function(e) {
+        player.on("fireShot", e => {
           if (shotPool.length >= ShotClass.fireCount) {
-            for (var i = 0; i < ShotClass.fireCount; i++) {
-              var s = glLayer.shotDrawer.get("shot");
+            for (let i = 0; i < ShotClass.fireCount; i++) {
+              const s = glLayer.shotDrawer.get("shot");
               if (s) {
-                s.spawn(this, i, gameScene).addChildTo(glLayer);
+                s.spawn(player, i, gameScene).addChildTo(glLayer);
                 shots.push(s);
               }
             }
@@ -3196,33 +3181,31 @@ phina.namespace(function() {
           }
         });
 
-        shotPool.forEach(function(shot) {
+        shotPool.forEach(shot => {
           if (ShotClass.hitEffect) {
-            shot.on("hit", function() {
-              var effect = glLayer.topEffectDrawer.get("hitEffect");
+            shot.on("hit", e => {
+              const effect = glLayer.topEffectDrawer.get("hitEffect");
               if (effect) {
                 effect
                   .spawn({
-                    x: this.x,
-                    y: this.y,
+                    x: shot.x,
+                    y: shot.y,
                   })
                   .addChildTo(glLayer);
               }
             });
           }
-          shot.on("removed", function() {
-            shots.erase(this);
-          });
+          shot.on("removed", e => shots.erase(shot));
         });
 
         if (ShotClass.mazzleFlashEffect) {
-          player.on("fireShot", function(e) {
-            var effect = glLayer.effectDrawer.get("mazzleFlashEffect");
+          player.on("fireShot", e => {
+            const effect = glLayer.effectDrawer.get("mazzleFlashEffect");
             if (effect) {
               effect
                 .spawn({
-                  x: this.x + ShotClass.mazzleFlashEffect.x,
-                  y: this.y + ShotClass.mazzleFlashEffect.y,
+                  x: player.x + ShotClass.mazzleFlashEffect.x,
+                  y: player.y + ShotClass.mazzleFlashEffect.y,
                 })
                 .addChildTo(glLayer);
             }
@@ -3234,7 +3217,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.Laser", {
     superClass: "passion.Shot",
@@ -3263,7 +3246,7 @@ phina.namespace(function() {
 
     spawn: function(player, index, gameScene) {
       this.player = player;
-      var f = Math.randint(6, 8);
+      const f = Math.randint(6, 8);
       this.superMethod("spawn", {
         x: player.x,
         y: player.y - 30,
@@ -3301,7 +3284,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.NormalShot", {
     superClass: "passion.Shot",
@@ -3357,7 +3340,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.NormalShot2", {
     superClass: "passion.Shot",
@@ -3413,7 +3396,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.WideShot", {
     superClass: "passion.Shot",
@@ -3473,7 +3456,7 @@ phina.namespace(function() {
 
 });
 
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.WideShot2", {
     superClass: "passion.Shot",
@@ -3497,8 +3480,8 @@ phina.namespace(function() {
     },
 
     spawn: function(player, index, gameScene) {
-      var d = ~~(index / 3);
-      var i = index % 3;
+      const d = ~~(index / 3);
+      const i = index % 3;
 
       this.superMethod("spawn", {
         x: player.x + [-1, 1, 0][d] * 30 + [-1, 1, 0][i] * 10,

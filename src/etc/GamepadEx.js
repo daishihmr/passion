@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GamepadManager", {
     superClass: "phina.input.GamepadManager",
@@ -45,7 +45,7 @@ phina.namespace(function() {
     },
 
     _updateEvery: function() {
-      var stick = this.getStickDirection();
+      const stick = this.getStickDirection();
 
       if (this.getKeyUp("left") || this.beforeStickX < -0.5 && -0.5 <= stick.x) {
         this._leftCount = 0;
@@ -75,29 +75,29 @@ phina.namespace(function() {
     _accessor: {
       leftPressing: {
         get: function() {
-          var count = this._leftCount;
-          var current = this.getKey("left") || this.getStickDirection().x < -0.5;
+          const count = this._leftCount;
+          const current = this.getKey("left") || this.getStickDirection().x < -0.5;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       rightPressing: {
         get: function() {
-          var count = this._rightCount;
-          var current = this.getKey("right") || 0.5 < this.getStickDirection().x;
+          const count = this._rightCount;
+          const current = this.getKey("right") || 0.5 < this.getStickDirection().x;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       upPressing: {
         get: function() {
-          var count = this._upCount;
-          var current = this.getKey("up") || this.getStickDirection().y < -0.5;
+          const count = this._upCount;
+          const current = this.getKey("up") || this.getStickDirection().y < -0.5;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       downPressing: {
         get: function() {
-          var count = this._downCount;
-          var current = this.getKey("down") || 0.5 < this.getStickDirection().y;
+          const count = this._downCount;
+          const current = this.getKey("down") || 0.5 < this.getStickDirection().y;
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },

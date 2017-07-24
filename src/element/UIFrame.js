@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.UIFrame", {
     superClass: "phina.display.Shape",
@@ -10,7 +10,7 @@ phina.namespace(function() {
     },
 
     prerender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2 + 10, -this.height / 2);
@@ -24,7 +24,7 @@ phina.namespace(function() {
       c.lineTo(-this.width / 2, 10 - this.height / 2);
       c.closePath();
 
-      var sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      const sg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
       sg.addColorStop(0.00, "hsla(190, 100%, 30%, 0.8)");
       sg.addColorStop(0.38, "hsla(190, 100%, 30%, 0.8)");
       sg.addColorStop(0.48, "hsla(190, 100%, 80%, 0.8)");
@@ -33,7 +33,7 @@ phina.namespace(function() {
       sg.addColorStop(1.00, "hsla(190, 100%, 30%, 0.8)");
       this.stroke = sg;
 
-      var fg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
+      const fg = c.createLinearGradient(this.height / 2, -this.width / 2, -this.height / 2, this.width / 2);
       fg.addColorStop(0.00, "hsla(210, 100%, 30%, 0.2)");
       fg.addColorStop(0.38, "hsla(210, 100%, 30%, 0.2)");
       fg.addColorStop(0.48, "hsla(210, 100%, 80%, 0.2)");
@@ -44,7 +44,7 @@ phina.namespace(function() {
     },
 
     postrender: function(canvas) {
-      var c = canvas.context;
+      const c = canvas.context;
 
       c.beginPath();
       c.moveTo(-this.width / 2 + 10 - 3, -this.height / 2 - 3);

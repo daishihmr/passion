@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.GLLayer", {
     superClass: "phina.display.Layer",
@@ -36,8 +36,8 @@ phina.namespace(function() {
       this.domElement.width = this.width * passion.GLLayer.quality;
       this.domElement.height = this.height * passion.GLLayer.quality;
 
-      var gl = this.gl = passion.GLLayer.GL;
-      var extInstancedArrays = phigl.Extensions.getInstancedArrays(gl);
+      const gl = this.gl = passion.GLLayer.GL;
+      const extInstancedArrays = phigl.Extensions.getInstancedArrays(gl);
 
       gl.viewport(0, 0, this.domElement.width, this.domElement.height);
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -46,12 +46,12 @@ phina.namespace(function() {
       gl.enable(gl.BLEND);
       gl.disable(gl.DEPTH_TEST);
 
-      var cw = this.domElement.width;
-      var ch = this.domElement.height;
-      var w = this.width;
-      var h = this.height;
-      var sw = Math.pow(2, ~~Math.log2(cw) + 1);
-      var sh = Math.pow(2, ~~Math.log2(ch) + 1);
+      const cw = this.domElement.width;
+      const ch = this.domElement.height;
+      const w = this.width;
+      const h = this.height;
+      const sw = Math.pow(2, ~~Math.log2(cw) + 1);
+      const sh = Math.pow(2, ~~Math.log2(ch) + 1);
 
       this.camera = passion.Camera()
         .setPosition(w * 0.5, h * 0.5, 2000)
@@ -85,12 +85,12 @@ phina.namespace(function() {
     draw: function(canvas) {
       if (!this.ready) return;
 
-      var gl = this.gl;
-      var image = this.domElement;
-      var cw = image.width;
-      var ch = image.height;
+      const gl = this.gl;
+      const image = this.domElement;
+      const cw = image.width;
+      const ch = image.height;
 
-      var ou = this.camera.uniformValues();
+      const ou = this.camera.uniformValues();
 
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -104,7 +104,7 @@ phina.namespace(function() {
 
       gl.flush();
 
-      var p = passion.GLLayer.padding;
+      const p = passion.GLLayer.padding;
       canvas.context.drawImage(image,
         0, 0, cw, ch,
         this.width * p, this.height * p, this.width * (1 - p * 2), this.height * (1 - p * 2)

@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
   phina.define("passion.BulletDrawer", {
     superClass: "phigl.InstancedDrawable",
 
@@ -10,7 +10,7 @@ phina.namespace(function() {
     init: function(gl, ext, w, h) {
       this.superInit(gl, ext);
 
-      var shader = phigl.Program(gl)
+      const shader = phigl.Program(gl)
         .attach("bullets.vs")
         .attach("bullets.fs")
         .link();
@@ -60,15 +60,15 @@ phina.namespace(function() {
           "globalScale"
         );
 
-      var instanceUnit = this.instanceStride / 4;
-      
-      var texture = phigl.Texture(gl, "bullets.png");
+      const instanceUnit = this.instanceStride / 4;
+
+      const texture = phigl.Texture(gl, "bullets.png");
 
       this.uniforms.texture.setValue(0).setTexture(texture);
       this.uniforms.globalScale.setValue(1.0);
 
-      var instanceData = this.instanceData = [];
-      for (var i = 0; i < this._count; i++) {
+      const instanceData = this.instanceData = [];
+      for (let i = 0; i < this._count; i++) {
         instanceData.push(
           // position
           0, 0,
@@ -88,17 +88,13 @@ phina.namespace(function() {
       }
       this.setInstanceAttributeData(instanceData);
 
-      var self = this;
       this.pool = Array.range(0, this._count)
-        .map(function(id) {
-          return passion.Bullet(id, instanceData, instanceUnit)
-            .on("removed", function() {
-              self.pool.add(this);
-            });
+        .map(id => {
+          const b = passion.Bullet(id, instanceData, instanceUnit);
+          b.on("removed", () => this.pool.add(b));
+          return b;
         })
-        .toPool(function(lhs, rhs) {
-          return lhs.id - rhs.id;
-        });
+        .toPool((lhs, rhs) => lhs.id - rhs.id);
     },
 
     get: function() {
@@ -110,16 +106,16 @@ phina.namespace(function() {
     },
 
     render: function(uniforms) {
-      var gl = this.gl;
+      const gl = this.gl;
       // gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
       if (uniforms) {
-        uniforms.forIn(function(key, value) {
+        uniforms.forIn((key, value) => {
           if (this.uniforms[key]) this.uniforms[key].value = value;
-        }.bind(this));
+        });
       }
 
       this.draw(this._count);

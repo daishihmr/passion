@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.SpritDrawer", {
     superClass: "phigl.InstancedDrawable",
@@ -12,7 +12,7 @@ phina.namespace(function() {
       this.objTypes = [];
       this.objParameters = {};
 
-      var shader = phigl.Program(gl)
+      const shader = phigl.Program(gl)
         .attach("sprites.vs")
         .attach("sprites.fs")
         .link();
@@ -61,7 +61,7 @@ phina.namespace(function() {
           "globalScale"
         );
 
-      var instanceStride = this.instanceStride / 4;
+      const instanceStride = this.instanceStride / 4;
 
       this.uniforms.globalScale.setValue(1.0);
     },
@@ -75,16 +75,16 @@ phina.namespace(function() {
       }, options);
 
       if (!this.objTypes.contains(objName)) {
-        var instanceStride = this.instanceStride / 4;
+        const instanceStride = this.instanceStride / 4;
 
         this.objTypes.push(objName);
-        var objParameter = this.objParameters[objName] = {
+        const objParameter = this.objParameters[objName] = {
           count: options.count,
           instanceVbo: phigl.Vbo(this.gl, this.gl.DYNAMIC_DRAW),
           texture: phigl.Texture(this.gl, options.texture),
           pool: null,
           additiveBlending: options.additiveBlending,
-          instanceData: Array.range(options.count).map(function(i) {
+          instanceData: Array.range(options.count).map(i => {
             return [
               // visible
               0,
@@ -102,12 +102,11 @@ phina.namespace(function() {
           }).flatten(),
         };
 
-        var ObjClass = phina.using(options.className);
-        objParameter.pool = Array.range(options.count).map(function(id) {
-          return ObjClass(id, objParameter.instanceData, instanceStride)
-            .on("removed", function() {
-              objParameter.pool.push(this);
-            });
+        const ObjClass = phina.using(options.className);
+        objParameter.pool = Array.range(options.count).map(id => {
+          const s = ObjClass(id, objParameter.instanceData, instanceStride);
+          s.on("removed", () => objParameter.pool.push(s));
+          return s;
         });
       }
     },
@@ -121,20 +120,19 @@ phina.namespace(function() {
     render: function(uniforms) {
       if (this.objTypes.length === 0) return;
 
-      var gl = this.gl;
+      const gl = this.gl;
       // gl.enable(gl.BLEND);
       // gl.disable(gl.DEPTH_TEST);
 
       this.uniforms.globalScale.value = 1.0;
 
       if (uniforms) {
-        uniforms.forIn(function(key, value) {
+        uniforms.forIn((key, value) => {
           if (this.uniforms[key]) this.uniforms[key].value = value;
-        }.bind(this));
+        });
       }
-      var self = this;
-      this.objTypes.forEach(function(objName) {
-        var objParameter = self.objParameters[objName];
+      this.objTypes.forEach(objName => {
+        const objParameter = this.objParameters[objName];
 
         if (objParameter.additiveBlending) {
           gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
@@ -142,11 +140,11 @@ phina.namespace(function() {
           gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         }
 
-        self.setInstanceAttributeVbo(
+        this.setInstanceAttributeVbo(
           objParameter.instanceVbo.set(objParameter.instanceData)
         );
-        self.uniforms.texture.setValue(0).setTexture(objParameter.texture);
-        self.draw(objParameter.count);
+        this.uniforms.texture.setValue(0).setTexture(objParameter.texture);
+        this.draw(objParameter.count);
       });
     },
   });

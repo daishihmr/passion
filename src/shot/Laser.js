@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.Laser", {
     superClass: "passion.Shot",
@@ -27,7 +27,7 @@ phina.namespace(function() {
 
     spawn: function(player, index, gameScene) {
       this.player = player;
-      var f = Math.randint(6, 8);
+      const f = Math.randint(6, 8);
       this.superMethod("spawn", {
         x: player.x,
         y: player.y - 30,

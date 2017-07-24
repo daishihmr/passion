@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Enemy", {
     superClass: "passion.Sprite",
@@ -28,20 +28,12 @@ phina.namespace(function() {
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
 
-      this.on("spawned", function() {
-        this.status = 0;
-      });
-      this.on("activated", function() {
-        this.status = 1;
-      })
-      this.on("entered", function() {
-        this.status = 2;
-      });
-      this.on("killed", function(e) {
-        this.status = 3;
-      });
+      this.on("spawned", e => this.status = 0);
+      this.on("activated", e => this.status = 1)
+      this.on("entered", e => this.status = 2);
+      this.on("killed", e => this.status = 3);
 
-      this.on("removed", function() {
+      this.on("removed", e => {
         this.clear("damaged");
         this.tweener.clear();
         this.motionRunner = null;
@@ -49,7 +41,7 @@ phina.namespace(function() {
         this.status = -1;
         this.waitTime = 0;
       });
-      this.on("enterframe", function() {
+      this.on("enterframe", e => {
         if (this.status === 0) {
           this.waitTime -= 1;
           if (this.waitTime <= 0) {
@@ -113,8 +105,8 @@ phina.namespace(function() {
       this.rot = options.rot || false;
 
       if (!options.muteki) {
-        this.on("damaged", function(e) {
-          var shot = e.shot;
+        this.on("damaged", e => {
+          const shot = e.shot;
           this.hp -= shot.power;
           if (this.hp <= 0) {
             this.flare("killed");

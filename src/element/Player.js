@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Player", {
     superClass: "passion.Sprite",
@@ -10,15 +10,15 @@ phina.namespace(function() {
           texture: "texture0.png",
         });
 
-        var player = glLayer.playerDrawer.get("player");
+        const player = glLayer.playerDrawer.get("player");
         player.spawn(spec);
 
-        player.on("enterframe", function(e) {
+        player.on("enterframe", e => {
           if (e.app.ticker.frame % 2 !== 0) return;
 
-          var hex1 = glLayer.effectDrawer.get("particle");
-          var hex2 = glLayer.effectDrawer.get("particle");
-          var options = {
+          const hex1 = glLayer.effectDrawer.get("particle");
+          const hex2 = glLayer.effectDrawer.get("particle");
+          const options = {
             x: player.x - 8,
             y: player.y + 15,
             scaleX: 18,
@@ -32,30 +32,35 @@ phina.namespace(function() {
             blue: 1.0,
             alpha: 1.0,
           };
-          var oefl = function() {
-            this.y += 2;
-            this.alpha *= 0.80;
-            if (this.alpha < 0.01) {
-              this.remove();
-            }
-          };
 
           if (hex1) {
             options.x = player.x - 8;
             hex1.spawn(options);
-            hex1.onenterframe = oefl;
+            hex1.onenterframe = e => {
+              hex1.y += 2;
+              hex1.alpha *= 0.80;
+              if (hex1.alpha < 0.01) {
+                hex1.remove();
+              }
+            };
             hex1.addChildTo(glLayer);
           }
 
           if (hex2) {
             options.x = player.x + 8;
             hex2.spawn(options);
-            hex2.onenterframe = oefl;
+            hex2.onenterframe = e => {
+              hex2.y += 2;
+              hex2.alpha *= 0.80;
+              if (hex2.alpha < 0.01) {
+                hex2.remove();
+              }
+            };
             hex2.addChildTo(glLayer);
           }
         });
 
-        var aura = glLayer.effectDrawer.get("particle");
+        const aura = glLayer.effectDrawer.get("particle");
         aura.spawn({
           x: player.x,
           y: player.y,
@@ -71,12 +76,12 @@ phina.namespace(function() {
           alpha: 0.2,
         });
         aura.addChildTo(glLayer);
-        aura.on("enterframe", function() {
-          this.x = player.x;
-          this.y = player.y;
+        aura.on("enterframe", e => {
+          aura.x = player.x;
+          aura.y = player.y;
         });
 
-        var centerMarker = glLayer.topEffectDrawer.get("particle");
+        const centerMarker = glLayer.topEffectDrawer.get("particle");
         centerMarker.spawn({
           x: player.x,
           y: player.y,
@@ -92,16 +97,16 @@ phina.namespace(function() {
           alpha: 1.0,
         });
         centerMarker.addChildTo(player);
-        centerMarker.on("enterframe", function() {
-          this.x = player.x;
-          this.y = player.y;
-          this.rotation += 0.1;
+        centerMarker.on("enterframe", e => {
+          centerMarker.x = player.x;
+          centerMarker.y = player.y;
+          centerMarker.rotation += 0.1;
         });
 
         return player;
       },
     },
-    
+
     hp: 0,
 
     _roll: 0,
@@ -114,7 +119,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function(e) {
+      this.on("enterframe", e => {
         this.controll(e.app);
         if (this.mutekiTime > 0) this.mutekiTime -= 1;
       });
@@ -134,16 +139,17 @@ phina.namespace(function() {
         green: 1.2,
         blue: 1.2,
       });
-      
+
       this.hp = spec.hp;
 
       return this;
     },
 
     controll: function(app) {
+      const p = app.pointer;
+      const dp = p.deltaPosition;
+
       if (this.controllable) {
-        var p = app.pointer;
-        var dp = p.deltaPosition;
 
         if (phina.isMobile() || p.getPointing()) {
           this.x += dp.x * 2;
@@ -167,7 +173,7 @@ phina.namespace(function() {
       }
 
       if (this.fireable) {
-        var touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
+        const touch = (!phina.isMobile() && p.getPointing()) || (phina.isMobile() && app.pointers.length > 0);
         if (touch && this.heat <= 0) {
           this.flare("fireShot");
           this.heat = this.heatByShot;
@@ -180,7 +186,7 @@ phina.namespace(function() {
     ondamaged: function(e) {
       if (this.mutekiTime > 0) return;
 
-      var another = e.another;
+      const another = e.another;
     },
 
     _accessor: {
@@ -190,7 +196,7 @@ phina.namespace(function() {
         },
         set: function(v) {
           this._roll = Math.clamp(v, -3, 3);
-          var r = ~~this._roll;
+          const r = ~~this._roll;
           this.frameX = (r + 3) / 8;
         },
       },

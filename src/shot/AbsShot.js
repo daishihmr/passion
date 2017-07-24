@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Shot", {
     superClass: "passion.Sprite",
@@ -10,7 +10,7 @@ phina.namespace(function() {
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function(e) {
+      this.on("enterframe", e => {
         this.bx = this.x;
         this.by = this.y;
         this.controll(e.app);
@@ -28,7 +28,7 @@ phina.namespace(function() {
 
     _static: {
       commonSetup: function(shotClassName, glLayer, player, shots, gameScene) {
-        var ShotClass = this;
+        const ShotClass = this;
         glLayer.shotDrawer.addObjType("shot", {
           className: shotClassName,
           texture: ShotClass.texture || "bullets.png",
@@ -46,14 +46,14 @@ phina.namespace(function() {
           glLayer.effectDrawer.addObjType("mazzleFlashEffect", ShotClass.mazzleFlashEffect);
         }
 
-        var shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
+        const shotPool = glLayer.shotDrawer.objParameters["shot"].pool;
         player.heatByShot = ShotClass.heatByShot;
-        player.on("fireShot", function(e) {
+        player.on("fireShot", e => {
           if (shotPool.length >= ShotClass.fireCount) {
-            for (var i = 0; i < ShotClass.fireCount; i++) {
-              var s = glLayer.shotDrawer.get("shot");
+            for (let i = 0; i < ShotClass.fireCount; i++) {
+              const s = glLayer.shotDrawer.get("shot");
               if (s) {
-                s.spawn(this, i, gameScene).addChildTo(glLayer);
+                s.spawn(player, i, gameScene).addChildTo(glLayer);
                 shots.push(s);
               }
             }
@@ -62,33 +62,31 @@ phina.namespace(function() {
           }
         });
 
-        shotPool.forEach(function(shot) {
+        shotPool.forEach(shot => {
           if (ShotClass.hitEffect) {
-            shot.on("hit", function() {
-              var effect = glLayer.topEffectDrawer.get("hitEffect");
+            shot.on("hit", e => {
+              const effect = glLayer.topEffectDrawer.get("hitEffect");
               if (effect) {
                 effect
                   .spawn({
-                    x: this.x,
-                    y: this.y,
+                    x: shot.x,
+                    y: shot.y,
                   })
                   .addChildTo(glLayer);
               }
             });
           }
-          shot.on("removed", function() {
-            shots.erase(this);
-          });
+          shot.on("removed", e => shots.erase(shot));
         });
 
         if (ShotClass.mazzleFlashEffect) {
-          player.on("fireShot", function(e) {
-            var effect = glLayer.effectDrawer.get("mazzleFlashEffect");
+          player.on("fireShot", e => {
+            const effect = glLayer.effectDrawer.get("mazzleFlashEffect");
             if (effect) {
               effect
                 .spawn({
-                  x: this.x + ShotClass.mazzleFlashEffect.x,
-                  y: this.y + ShotClass.mazzleFlashEffect.y,
+                  x: player.x + ShotClass.mazzleFlashEffect.x,
+                  y: player.y + ShotClass.mazzleFlashEffect.y,
                 })
                 .addChildTo(glLayer);
             }

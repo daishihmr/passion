@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Sprite", {
     superClass: "phina.app.Element",
@@ -35,8 +35,8 @@ phina.namespace(function() {
         alpha: 1.0,
       });
 
-      // var index = this.index;
-      // var instanceData = this.instanceData;
+      // const index = this.index;
+      // const instanceData = this.instanceData;
 
       this.visible = options.visible;
       this.x = options.x;

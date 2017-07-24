@@ -1,10 +1,11 @@
-var SCREEN_WIDTH = 360;
-var SCREEN_HEIGHT = 640;
-var GAME_AREA_WIDTH = SCREEN_WIDTH;
-var GAME_AREA_HEIGHT = SCREEN_HEIGHT * 0.85;
-var FPS = 60;
+const SCREEN_WIDTH = 360;
+const SCREEN_HEIGHT = 640;
+const GAME_AREA_WIDTH = SCREEN_WIDTH;
+const GAME_AREA_HEIGHT = SCREEN_HEIGHT * 0.85;
+const FPS = 60;
+const PROD_DOMAIN = "private.dev7.jp";
 
-phina.main(function() {
+phina.main(() => {
 
   phina.display.DisplayScene.defaults.$extend({
     width: SCREEN_WIDTH,
@@ -18,8 +19,8 @@ phina.main(function() {
   phina.asset.SoundManager.volume = 0.05;
   phina.asset.SoundManager.musicVolume = 0.05;
 
-  var app = passion.Application();
-  if (location.hostname == "localhost" || location.hostname == "private.dev7.jp") {
+  const app = passion.Application();
+  if (location.hostname == "localhost" || location.hostname == PROD_DOMAIN) {
     app.enableStats();
   }
   app.run();
@@ -45,5 +46,4 @@ phina.main(function() {
 
     ]
   }));
-
 });

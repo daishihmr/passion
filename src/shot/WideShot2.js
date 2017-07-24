@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
   
   phina.define("passion.WideShot2", {
     superClass: "passion.Shot",
@@ -22,8 +22,8 @@ phina.namespace(function() {
     },
 
     spawn: function(player, index, gameScene) {
-      var d = ~~(index / 3);
-      var i = index % 3;
+      const d = ~~(index / 3);
+      const i = index % 3;
 
       this.superMethod("spawn", {
         x: player.x + [-1, 1, 0][d] * 30 + [-1, 1, 0][i] * 10,

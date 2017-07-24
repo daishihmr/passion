@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.UILayer", {
     superClass: "phina.display.DisplayElement",
@@ -145,7 +145,7 @@ phina.namespace(function() {
             className: "phina.display.DisplayElement",
             x: GAME_AREA_WIDTH * 0.5,
             y: GAME_AREA_HEIGHT * 0.5,
-            children: "Ready".split("").map(function(c, i) {
+            children: "Ready".split("").map((c, i) => {
               return {
                 className: "phina.display.Label",
                 arguments: {
@@ -174,21 +174,20 @@ phina.namespace(function() {
         },
       });
 
-      var self = this;
-      gameManager.on("updateScore", function() {
-        self.scoreBg.scoreLabel.text = passion.Utils.sep(this.score);
-        if (this.highScore < this.score) {
-          self.scoreBg.highscoreLabel.text = passion.Utils.sep(this.highScore);
+      gameManager.on("updateScore", e => {
+        this.scoreBg.scoreLabel.text = passion.Utils.sep(gameManager.score);
+        if (gameManager.highScore < gameManager.score) {
+          this.scoreBg.highscoreLabel.text = passion.Utils.sep(gameManager.highScore);
         }
       });
-      gameManager.on("damaged", function(e) {});
+      gameManager.on("damaged", e => {});
     },
 
     showReadyGo: function(callback) {
       this.readyLabels.visible = true;
       this.goLabel.visible = true;
 
-      this.readyLabels.children.forEach(function(label, i) {
+      this.readyLabels.children.forEach((label, i) => {
         label.tweener
           .set({
             scaleX: 4,
@@ -226,19 +225,19 @@ phina.namespace(function() {
           scaleY: 5,
           alpha: 0,
         }, 200)
-        .call(function() {
+        .call(() => {
           this.readyLabels.visible = false;
           this.goLabel.visible = false;
           callback();
-        }.bind(this));
+        });
     },
 
     damageTexture: function() {
-      var c = phina.graphics.Canvas();
-      var p = passion.GLLayer.padding;
+      const c = phina.graphics.Canvas();
+      const p = passion.GLLayer.padding;
       c.setSize(GAME_AREA_WIDTH * (1 - p * 2), GAME_AREA_HEIGHT * (1 - p * 2));
       c.clearColor("transparent");
-      var g = c.context.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, c.height / 2)
+      const g = c.context.createRadialGradient(c.width / 2, c.height / 2, 0, c.width / 2, c.height / 2, c.height / 2)
       g.addColorStop(0, "rgba(255, 0, 0, 0.0)");
       g.addColorStop(1, "rgba(255, 0, 0, 1.0)");
       c.fillStyle = g;

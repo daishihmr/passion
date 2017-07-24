@@ -1,4 +1,4 @@
- phina.namespace(function() {
+ phina.namespace(() => {
 
    phina.define("passion.CircleButton", {
      superClass: "phina.display.Shape",
@@ -34,7 +34,7 @@
      },
 
      postrender: function(canvas) {
-       var c = canvas.context;
+       const c = canvas.context;
 
        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
 
@@ -50,7 +50,7 @@
        c.stroke();
 
        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
-       for (var a = 0, b; a < Math.PI * 2;) {
+       for (let a = 0, b; a < Math.PI * 2;) {
          b = Math.randfloat(1.0, 2.0);
          c.beginPath();
          c.arc(0, 0, this.radius * 0.90, a, a + b, false);
@@ -60,7 +60,7 @@
        }
 
        c.strokeStyle = "hsla(190, 100%, 60%, 0.8)";
-       for (var a = 0, b; a < Math.PI * 2;) {
+       for (let a = 0, b; a < Math.PI * 2;) {
          b = Math.randfloat(1.0, 2.0);
          c.beginPath();
          c.arc(0, 0, this.radius * 1.00, a, a + b, false);

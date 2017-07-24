@@ -1,11 +1,11 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.BulletEraseEffect", {
     superClass: "passion.Sprite",
 
     init: function(id, instanceData, instanceStride) {
       this.superInit(id, instanceData, instanceStride);
-      this.on("enterframe", function(e) {
+      this.on("enterframe", e => {
         if (e.app.ticker.frame % 2 === 0) {
           this.frameX += 1 / 8;
           if (this.frameX >= 1.0) {

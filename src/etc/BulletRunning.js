@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.BulletRunning", {
     superClass: "phina.accessory.Accessory",

@@ -1,4 +1,4 @@
-phina.namespace(function() {
+phina.namespace(() => {
 
   phina.define("passion.Keyboard", {
     superClass: "phina.input.Keyboard",
@@ -40,29 +40,29 @@ phina.namespace(function() {
     _accessor: {
       leftPressing: {
         get: function() {
-          var count = this._leftCount;
-          var current = this.getKey("left");
+          const count = this._leftCount;
+          const current = this.getKey("left");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       rightPressing: {
         get: function() {
-          var count = this._rightCount;
-          var current = this.getKey("right");
+          const count = this._rightCount;
+          const current = this.getKey("right");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       upPressing: {
         get: function() {
-          var count = this._upCount;
-          var current = this.getKey("up");
+          const count = this._upCount;
+          const current = this.getKey("up");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
       downPressing: {
         get: function() {
-          var count = this._downCount;
-          var current = this.getKey("down");
+          const count = this._downCount;
+          const current = this.getKey("down");
           return current && (count == 1 || (40 < count && count % 6 == 0));
         }
       },
