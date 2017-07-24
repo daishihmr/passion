@@ -18,9 +18,7 @@ phina.namespace(() => {
       const stageData = phina.asset.AssetManager.get("json", "stage").data;
 
       const r = phina.util.Random(12345);
-      const randomFunc = function() {
-        return r.random();
-      };
+      const randomFunc = () => r.random();
       bulletml.Walker.random = randomFunc;
 
       this.gameManager = passion.GameManager(stageData, randomFunc);

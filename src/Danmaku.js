@@ -12,13 +12,11 @@ phina.namespace(() => {
         const glLayer = gameScene.glLayer;
         const bulletDrawer = glLayer.bulletDrawer;
         const enemyDrawer = glLayer.enemyDrawer;
-        bulletml.Walker.random = function() {
-          return gameScene.random.random();
-        };
+        bulletml.Walker.random = () => gameScene.random.random();
 
         this.config = {
           target: player,
-          createNewBullet: function(runner, spec) {
+          createNewBullet: (runner, spec) => {
             const bullet = bulletDrawer.get();
             if (bullet) {
               bullet.spawn({

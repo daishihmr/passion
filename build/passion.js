@@ -194,13 +194,11 @@ phina.namespace(() => {
         const glLayer = gameScene.glLayer;
         const bulletDrawer = glLayer.bulletDrawer;
         const enemyDrawer = glLayer.enemyDrawer;
-        bulletml.Walker.random = function() {
-          return gameScene.random.random();
-        };
+        bulletml.Walker.random = () => gameScene.random.random();
 
         this.config = {
           target: player,
-          createNewBullet: function(runner, spec) {
+          createNewBullet: (runner, spec) => {
             const bullet = bulletDrawer.get();
             if (bullet) {
               bullet.spawn({
@@ -2441,9 +2439,7 @@ phina.namespace(() => {
         this.target.x = runner.x;
         this.target.y = runner.y;
         this.target.rotation = runner.direction;
-        runner.onVanish = function() {
-          this.remove();
-        }.bind(this.target);
+        runner.onVanish = () => this.target.remove();
       }
       return this;
     },
@@ -2766,9 +2762,7 @@ phina.namespace(() => {
       const stageData = phina.asset.AssetManager.get("json", "stage").data;
 
       const r = phina.util.Random(12345);
-      const randomFunc = function() {
-        return r.random();
-      };
+      const randomFunc = () => r.random();
       bulletml.Walker.random = randomFunc;
 
       this.gameManager = passion.GameManager(stageData, randomFunc);

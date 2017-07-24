@@ -15,9 +15,7 @@ phina.namespace(() => {
         this.target.x = runner.x;
         this.target.y = runner.y;
         this.target.rotation = runner.direction;
-        runner.onVanish = function() {
-          this.remove();
-        }.bind(this.target);
+        runner.onVanish = () => this.target.remove();
       }
       return this;
     },
