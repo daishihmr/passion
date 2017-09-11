@@ -30,6 +30,41 @@ phina.namespace(() => {
       });
 
       this.gamepadManager = passion.GamepadManager();
+
+      // Pointer Lock APIが実装されたら使う
+      // if (!phina.isMobile()) {
+      //   this.pointerLock = passion.PointerLock(this.domElement);
+      //   window.document.addEventListener("click", e => {
+      //     if (this.currentScene instanceof passion.GameScene) {
+      //       this.pointerLock.lock();
+      //     } else {
+      //       this.pointerLock.exit();
+      //     }
+
+      //     this.on("changedscene", e => {
+      //       if (this.currentScene instanceof passion.GameScene) {
+      //         this.pointerLock.lock();
+      //       } else {
+      //         this.pointerLock.exit();
+      //       }
+      //     });
+      //   }, false);
+      // }
+    },
+
+    replaceScene: function(scene) {
+      this.superMethod("replaceScene", scene);
+      this.flare('changedscene');
+    },
+
+    pushScene: function(scene) {
+      this.superMethod("pushScene", scene);
+      this.flare('changedscene');
+    },
+
+    popScene: function(scene) {
+      this.superMethod("popScene", scene);
+      this.flare('changedscene');
     },
 
     update: function() {

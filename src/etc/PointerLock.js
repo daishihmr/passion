@@ -8,6 +8,10 @@ phina.namespace(() => {
     init: function(domElement) {
       this.superInit();
       this.domElement = domElement;
+
+      this.domElement.requestPointerLock = this.domElement.requestPointerLock || this.domElement.mozRequestPointerLock || (() => {});
+      this.domElement.exitPointerLock = this.domElement.exitPointerLock || this.domElement.mozExitPointerLock || (() => {});
+
       if ("onpointerlockchange" in this.domElement) {
         this.domElement.addEventListener("pointerlockchange", e => {
           this.flare("change");
@@ -17,18 +21,14 @@ phina.namespace(() => {
           this.flare("change");
         }, false);
       }
-
-      this.on("change", e => console.log("change!!"));
     },
 
     // https://developer.mozilla.org/ja/docs/API/Pointer_Lock_API
     lock: function() {
-      this.domElement.requestPointerLock = this.domElement.requestPointerLock || this.domElement.mozRequestPointerLock;
       this.domElement.requestPointerLock();
     },
 
     exit: function() {
-      this.domElement.exitPointerLock = this.domElement.exitPointerLock || this.domElement.mozExitPointerLock;
       this.domElement.exitPointerLock();
     },
 
